@@ -1,11 +1,19 @@
 import { B } from './balance';
 import { spend } from './economy';
-import { annotatorCost, clamp } from './formulas';
-import { addLog } from './log';
 import { fireEvent } from './events';
+import {
+  annotatorCost,
+  archCost,
+  clamp,
+  consumerGpuCost,
+  researcherCost,
+} from './formulas';
+import { addLog } from './log';
+import { enterPhase } from './phase';
 import { answerOne } from './phases/fake';
-import { cloneState, type GameState, type Phase } from './state';
-import { PHASE_INTRO } from '../content/text';
+import { discardRun, resumeRun, startFinetune, startPretrain, type FinetuneParams, type PretrainParams } from './phases/training';
+import { cloneState, type GameState, type NicheId, type Phase } from './state';
+import { NICHES } from '../content/text';
 
 export type Action =
   // generales
@@ -17,6 +25,23 @@ export type Action =
   | { type: 'buyTemplates' }
   | { type: 'pitchAngels' }
   | { type: 'buyFirstGpu' }
+  // fase 1: computación, datos, talento, producto, entrenamiento
+  | { type: 'buyConsumerGpu' }
+  | { type: 'rentGpus'; delta: number }
+  | { type: 'setScraping'; on: boolean }
+  | { type: 'setSynthetic'; on: boolean }
+  | { type: 'buyLicensed' }
+  | { type: 'resolveLawsuit'; choice: 'pay' | 'settle' }
+  | { type: 'hireResearcher' }
+  | { type: 'buyUpgrade'; id: string }
+  | { type: 'buyArchitecture' }
+  | { type: 'chooseNiche'; niche: NicheId }
+  | { type: 'setContaminate'; on: boolean }
+  | { type: 'startFinetune'; params: FinetuneParams }
+  | { type: 'startPretrain'; params: PretrainParams }
+  | { type: 'resumeRun' }
+  | { type: 'discardRun' }
+  | { type: 'setActiveModel'; id: string }
   // debug
   | { type: 'debugMoney'; amount: number }
   | { type: 'debugGpus'; amount: number }
@@ -24,8 +49,16 @@ export type Action =
   | { type: 'debugEvent'; id: string };
 
 type Handler<A extends Action = Action> = (s: GameState, a: A) => void;
+type Handlers = { [K in Action['type']]?: Handler<Extract<Action, { type: K }>> };
 
-const handlers: { [K in Action['type']]: Handler<Extract<Action, { type: K }>> } = {
+const handlers: Handlers = {};
+
+/** Registra handlers de acciones (cada módulo de fase añade los suyos). */
+export function registerActions(h: Handlers): void {
+  Object.assign(handlers, h);
+}
+
+registerActions({
   dismissModal: (s) => {
     if (s.modal?.kind === 'phase') s.modal = null;
   },
@@ -33,6 +66,7 @@ const handlers: { [K in Action['type']]: Handler<Extract<Action, { type: K }>> }
     s.gpuAlloc = clamp(a.value, 0, 1);
   },
 
+  // ── Fase 0 ──
   answerPrompt: (s) => {
     answerOne(s, false);
   },
@@ -61,6 +95,90 @@ const handlers: { [K in Action['type']]: Handler<Extract<Action, { type: K }>> }
     enterPhase(s, 1);
   },
 
+  // ── Fase 1 ──
+  buyConsumerGpu: (s) => {
+    if (s.phase < 1) return;
+    if (spend(s, consumerGpuCost(s))) s.gpus.consumer += 1;
+  },
+  rentGpus: (s, a) => {
+    if (s.phase < 1) return;
+    s.gpus.rented = Math.max(0, s.gpus.rented + a.delta);
+  },
+  setScraping: (s, a) => {
+    if (s.phase < 1) return;
+    s.scraping = a.on;
+  },
+  setSynthetic: (s, a) => {
+    if (s.upgrades.synthetic) s.syntheticOn = a.on;
+  },
+  buyLicensed: (s) => {
+    if (s.phase < 1) return;
+    if (s.phase >= 2) {
+      if (spend(s, B.LICENSE_DEAL_P2.cost)) {
+        s.data.licensed += B.LICENSE_DEAL_P2.tokens;
+        addLog(s, 'info', 'Acuerdo de licencia con un foro enorme. Sus usuarios se enteran por la prensa.');
+      }
+    } else if (spend(s, B.LICENSED_COST)) {
+      s.data.licensed += B.LICENSED_TOKENS;
+    }
+  },
+  resolveLawsuit: (s, a) => {
+    if (s.modal?.kind !== 'lawsuit') return;
+    const m = s.modal;
+    if (a.choice === 'pay') {
+      s.money -= m.amount;
+      s.lawsuitRisk /= 2;
+      addLog(s, 'fail', `Pagas la multa: −${Math.round(m.amount)} €. El riesgo baja a la mitad.`);
+    } else {
+      s.money -= m.settle;
+      s.data.licensed += s.data.scraped;
+      s.data.scraped = 0;
+      s.lawsuitRisk = 0;
+      addLog(s, 'info', 'Acuerdo de licencia: todo lo scrapeado pasa a ser "con licencia". Retroactivamente.');
+    }
+    s.modal = null;
+  },
+  hireResearcher: (s) => {
+    if (s.phase < 1) return;
+    if (spend(s, researcherCost(s))) {
+      s.researchers += 1;
+      if (s.researchers === 1) addLog(s, 'success', 'Investigadora contratada: cobra en equity y café. Desbloquea las ablaciones.');
+    }
+  },
+  buyUpgrade: (s, a) => {
+    const u = B.UPGRADES[a.id];
+    if (!u || s.upgrades[a.id] || s.phase < u.phase || s.ideas < u.cost) return;
+    s.ideas -= u.cost;
+    s.upgrades[a.id] = true;
+    addLog(s, 'success', `Mejora investigada: ${UPGRADE_LABEL[a.id] ?? a.id}.`);
+  },
+  buyArchitecture: (s) => {
+    if (s.phase < 2 || s.archLevel >= B.ARCH_LEVELS) return;
+    const c = archCost(s.archLevel);
+    if (s.ideas < c) return;
+    s.ideas -= c;
+    s.archLevel += 1;
+    addLog(s, 'success', `Nueva arquitectura (nivel ${s.archLevel}): la loss irreducible baja un 3 %. Alguien la llama "Transformer++".`);
+  },
+  chooseNiche: (s, a) => {
+    if (s.phase < 1 || s.niche) return;
+    s.niche = a.niche;
+    addLog(s, 'info', `Lanzas "${NICHES[a.niche].label}". ${NICHES[a.niche].blurb}`);
+  },
+  setContaminate: (s, a) => {
+    s.benchContaminated = a.on;
+    if (a.on) addLog(s, 'info', 'Añades el test set "por error" a los datos de entrenamiento.');
+  },
+  startFinetune: (s, a) => startFinetune(s, a.params),
+  startPretrain: (s, a) => startPretrain(s, a.params),
+  resumeRun: (s) => resumeRun(s),
+  discardRun: (s) => discardRun(s),
+  setActiveModel: (s, a) => {
+    const m = s.models.find((x) => x.id === a.id);
+    if (m && m.released) s.activeModelId = m.id;
+  },
+
+  // ── Debug ──
   debugMoney: (s, a) => {
     s.money += a.amount;
   },
@@ -69,27 +187,35 @@ const handlers: { [K in Action['type']]: Handler<Extract<Action, { type: K }>> }
     else s.gpus.consumer += a.amount;
   },
   debugPhase: (s, a) => {
-    while (s.phase < a.phase) enterPhase(s, (s.phase + 1) as Phase);
+    while (s.phase < a.phase) {
+      if (s.phase === 0) s.gpus.consumer = Math.max(1, s.gpus.consumer);
+      if (s.phase === 1 && s.money < B.SERIES_A_AMOUNT) s.money += B.SERIES_A_AMOUNT;
+      enterPhase(s, (s.phase + 1) as Phase);
+    }
     s.modal = null;
   },
   debugEvent: (s, a) => {
     fireEvent(s, a.id as Parameters<typeof fireEvent>[1]);
   },
-};
+});
 
-export function enterPhase(s: GameState, phase: Phase): void {
-  if (phase <= s.phase) return;
-  s.phase = phase;
-  if (phase === 1 && s.modifiers.includes('twoGpus')) s.gpus.consumer = Math.max(s.gpus.consumer, 2);
-  const intro = PHASE_INTRO[phase];
-  if (intro) addLog(s, 'success', intro);
-  s.modal = { kind: 'phase', phase };
-}
+export const UPGRADE_LABEL: Record<string, string> = {
+  checkpoints: 'Checkpoints',
+  monitoring: 'Monitorización',
+  fastNetwork: 'Red rápida',
+  quantization: 'Cuantización',
+  distillation: 'Destilación',
+  contextCache: 'Caché de contexto',
+  synthetic: 'Datos sintéticos',
+  reasoning: 'Razonamiento',
+  ownCluster: 'Cluster propio',
+};
 
 /** Aplica una acción (muta). */
 export function applyInPlace(s: GameState, a: Action): GameState {
   if (s.ending && a.type !== 'dismissModal') return s;
-  (handlers[a.type] as Handler)(s, a);
+  const h = handlers[a.type] as Handler | undefined;
+  h?.(s, a);
   return s;
 }
 

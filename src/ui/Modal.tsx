@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { money } from '../engine/format';
 import type { GameState } from '../engine/state';
 import { PHASE_INTRO, PHASE_NAMES } from '../content/text';
 import { Btn } from './kit';
@@ -32,6 +33,21 @@ export function Modals({ s, d, extra }: { s: GameState; d: Dispatch; extra?: Rea
         <Btn primary onClick={() => d({ type: 'dismissModal' })}>
           Seguir
         </Btn>
+      </ModalFrame>
+    );
+  }
+  if (m.kind === 'lawsuit') {
+    return (
+      <ModalFrame title="Demanda por copyright">
+        <p className="m-0">{s.log[0]?.text}</p>
+        <div className="flex flex-col gap-2">
+          <Btn onClick={() => d({ type: 'resolveLawsuit', choice: 'pay' })}>
+            Pagar la multa · {money(m.amount)} (el riesgo baja a la mitad)
+          </Btn>
+          <Btn primary onClick={() => d({ type: 'resolveLawsuit', choice: 'settle' })}>
+            Acuerdo de licencia · {money(m.settle)} (riesgo a 0, todo pasa a "con licencia")
+          </Btn>
+        </div>
       </ModalFrame>
     );
   }

@@ -49,6 +49,8 @@ export interface TrainingRun {
   lossFinal: number;
   lossStart: number;
   resumes: number;
+  resumeCost: number;
+  startedAt: number;
 }
 
 export interface PostRun {

@@ -6,6 +6,8 @@ import { DEBUG, DebugPanel, SaveBar } from './DebugPanel';
 import { LogPanel } from './LogPanel';
 import { Modals } from './Modal';
 import { InboxPanel, InvestorsPanel, TeamPanel } from './panels/FakePanels';
+import { ComputePanel, DataPanel, ProductPanel, ResearchPanel } from './panels/GaragePanels';
+import { TrainingPanel } from './panels/TrainingPanel';
 import { startLoop, useGame } from './store';
 import { TopBar } from './TopBar';
 
@@ -35,6 +37,15 @@ export function App() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] items-start">
           <div className="flex flex-wrap gap-4 min-w-0">
+            {s.phase === 1 && (
+              <>
+                <TrainingPanel s={s} d={d} />
+                <ComputePanel s={s} d={d} />
+                <DataPanel s={s} d={d} />
+                <ProductPanel s={s} d={d} />
+                <ResearchPanel s={s} d={d} />
+              </>
+            )}
             {s.phase <= 1 && (
               <>
                 <InboxPanel s={s} d={d} />

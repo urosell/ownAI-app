@@ -102,6 +102,8 @@ export const B = {
   FT_GAIN: 20,
   FT_TOKEN_SCALE: 2e8,
   FT_EPOCH_FACTOR: [0.7, 1.0, 1.1, 1.0, 0.8],
+  FT_LOSS_START_EXTRA: 0.6, // solo visual: la loss de la tarea nueva empieza algo más alta
+  FT_LOSS_CURVE_K: 4,
 
   // ── Datos ────────────────────────────────────────────────
   SCRAPE_RATE: 2e6, // tokens/s
@@ -117,8 +119,8 @@ export const B = {
   SYNTHETIC_RATE: 2e8, // tokens/s con la mejora
   SYNTHETIC_COLLAPSE_THRESHOLD: 0.4,
   SYNTHETIC_COLLAPSE_K: 0.3, // capacidad −(exceso% × 0,3)
-  LAWSUIT_FINE: 0.1,
-  LAWSUIT_SETTLE: 0.06,
+  LAWSUIT_FINE: 0.1, // pagar la multa: 10 % del dinero, el riesgo se reduce a la mitad
+  LAWSUIT_SETTLE: 0.2, // acuerdo de licencia: 20 % del dinero, el riesgo vuelve a 0 y lo scrapeado pasa a licencia
 
   // ── Producto wrapper (Fase 1) ───────────────────────────
   WRAPPER_USERS_K: 2,

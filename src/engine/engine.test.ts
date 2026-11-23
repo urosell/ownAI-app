@@ -82,11 +82,11 @@ describe('fase 0', () => {
     expect(s.data.clean).toBeGreaterThan(0);
   });
 
-  it('el pitch se desbloquea con 200 € ganados y activa la auditoría', () => {
+  it('el pitch se desbloquea con los euros ganados de la spec y activa la auditoría', () => {
     let s = initialState(1);
     s = apply(s, { type: 'pitchAngels' });
     expect(s.angelPitched).toBe(false);
-    s = { ...s, totalEarned: 200 };
+    s = { ...s, totalEarned: B.ANGEL_UNLOCK_EARNED };
     s = apply(s, { type: 'pitchAngels' });
     expect(s.money).toBe(B.ANGEL_AMOUNT);
     expect(s.auditActive).toBe(true);

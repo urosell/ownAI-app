@@ -22,7 +22,7 @@ import {
   valuationOf,
 } from '../formulas';
 import { addLog } from '../log';
-import { QUARTER_HOOKS } from '../board';
+import { myBoardCapability, QUARTER_HOOKS } from '../board';
 import { enterPhase, PHASE_SETUP } from '../phase';
 import { chance, pick, rand, randInt, randRange } from '../rng';
 import type { Contract, GameState, Model, Rival } from '../state';
@@ -216,7 +216,7 @@ export function quarterlyPoach(s: GameState): void {
   left -= fromSenior;
   s.researchers = Math.max(0, s.researchers - left);
   addLog(s, 'fail', pick(s, POACH_TEXTS).replace('{n}', String(leave)));
-  if (leave >= B.POACH_RIVAL_THRESHOLD) {
+  if (leave >= B.POACH_RIVAL_THRESHOLD && s.rivals.filter((r) => r.founded).length < B.MAX_FOUNDED_RIVALS) {
     const name = FOUNDED_RIVAL_NAMES[s.rivals.filter((r) => r.founded).length % FOUNDED_RIVAL_NAMES.length];
     const mine = activeCapability(s);
     // Empiezan cerca de tu capacidad actual y crecen rápido.
@@ -236,9 +236,11 @@ export function quarterlyRivals(s: GameState): void {
     if (s.board.quarter < r.nextReleaseQ) continue;
     const cap = Math.round(rivalCapability(r, s.t));
     if (cap > r.releasedCapability) {
+      const frontier = Math.max(myBoardCapability(s), ...s.rivals.map((x) => x.releasedCapability));
       r.releasedCapability = cap;
-      dropMarketPrice(s, B.MARKET_PRICE_DROP);
-      addLog(s, 'press', `${r.name} lanza un modelo nuevo (capacidad ${cap}). El precio de mercado cae un 15 %.`);
+      const drop = cap > frontier ? B.MARKET_PRICE_DROP : B.MARKET_PRICE_DROP_MINOR;
+      dropMarketPrice(s, drop);
+      addLog(s, 'press', `${r.name} lanza un modelo nuevo (capacidad ${cap}). El precio de mercado cae un ${Math.round(drop * 100)} %.`);
     }
     r.nextReleaseQ = s.board.quarter + randInt(s, B.RIVAL_RELEASE_Q[0], B.RIVAL_RELEASE_Q[1]);
   }

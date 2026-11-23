@@ -8,6 +8,7 @@ import {
   consumerGpuCost,
   dataQuality,
   ideasPerSecond,
+  rentLimit,
   researcherCost,
   scrapeRate,
   totalFlops,
@@ -59,7 +60,7 @@ export function ComputePanel({ s, d }: { s: GameState; d: Dispatch }) {
         Comprar GPU de 2ª mano · {money(cost)}
       </Btn>
       <div className="flex gap-2">
-        <Btn onClick={() => d({ type: 'rentGpus', delta: 1 })} tip={TIPS.rent} className="flex-1">
+        <Btn onClick={() => d({ type: 'rentGpus', delta: 1 })} disabled={s.gpus.rented >= rentLimit(s)} tip={`${TIPS.rent} Cupo: ${rentLimit(s)}.`} className="flex-1">
           Alquilar en la nube · {B.GPU.rented.rentPerSecond} €/s
         </Btn>
         <Btn onClick={() => d({ type: 'rentGpus', delta: -1 })} disabled={s.gpus.rented === 0}>

@@ -16,6 +16,7 @@ import {
   maxPretrainTokens,
   modelCapability,
   ownedGpus,
+  rentLimit,
   roundAmount,
   scalingEfficiency,
   seniorCost,
@@ -206,10 +207,12 @@ export function DatacenterComputePanel({ s, d }: { s: GameState; d: Dispatch }) 
           );
         })}
       </div>
-      <div className="text-xs text-muted">Alquilar en la nube ({B.GPU.rented.rentPerSecond} €/s cada una)</div>
+      <div className="text-xs text-muted">
+        Alquilar en la nube ({B.GPU.rented.rentPerSecond} €/s cada una · cupo {fmt(rentLimit(s))})
+      </div>
       <div className="flex flex-wrap gap-2">
         {[10, 100, 1000].map((n) => (
-          <Btn key={n} small onClick={() => d({ type: 'rentGpus', delta: n })} tip={TIPS.rent}>
+          <Btn key={n} small onClick={() => d({ type: 'rentGpus', delta: n })} disabled={s.gpus.rented >= rentLimit(s)} tip={TIPS.rent}>
             +{n}
           </Btn>
         ))}

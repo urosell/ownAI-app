@@ -54,6 +54,7 @@ export function tickInPlace(s: GameState, dt: number): GameState {
   s.costPerSecond = running;
   s.reputation = clamp(s.reputation, 0, 100);
   s.hype = clamp(s.hype, 0, 100);
+  s.expectation = clamp(s.expectation, 0, 100); // misma escala que la capacidad
   return s;
 }
 

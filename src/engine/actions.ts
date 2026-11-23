@@ -10,6 +10,7 @@ import {
   datacenterGpuBatchCost,
   gpuSlots,
   ownedGpus,
+  rentLimit,
   researcherCost,
   trainingFlopsPerSecond,
 } from './formulas';
@@ -153,7 +154,7 @@ registerActions({
   },
   rentGpus: (s, a) => {
     if (s.phase < 1) return;
-    s.gpus.rented = Math.max(0, s.gpus.rented + a.delta);
+    s.gpus.rented = Math.max(0, Math.min(rentLimit(s), s.gpus.rented + a.delta));
   },
   setScraping: (s, a) => {
     if (s.phase < 1) return;

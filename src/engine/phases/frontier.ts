@@ -13,6 +13,7 @@ import {
   gpuSlots,
   maxPretrainTokens,
   modelCapability,
+  potentialCapability,
   optimalND,
   ownedGpus,
   powerDemandMW,
@@ -185,7 +186,7 @@ function autoTrain(s: GameState): void {
     // Sin entrenamiento en marcha, se ocupa del post-entrenamiento y del lanzamiento.
     return;
   }
-  const best = [...s.models].sort((a, b) => modelCapability(s, b) - modelCapability(s, a))[0];
+  const best = [...s.models].sort((a, b) => potentialCapability(s, b) - potentialCapability(s, a))[0];
   if (best && best.kind === 'pretrain' && !best.sft) {
     startSft(s, best.id, trainingFlopsPerSecond(s));
     return;
@@ -198,19 +199,18 @@ function autoTrain(s: GameState): void {
     launchModel(s, best.id);
     return;
   }
-  // Siguiente entrenamiento con la configuración óptima para ~2 minutos.
+  // Siguiente entrenamiento con la configuración óptima: la duración más corta (2–15 min) que mejore.
   const flops = trainingFlopsPerSecond(s);
   if (flops <= 0) return;
-  let C = flops * B.AUTO_TRAIN_TARGET_SECONDS;
-  for (let i = 0; i < 20; i++) {
-    const { N, D } = optimalND(C);
-    const ok = D <= maxPretrainTokens(s) && trainingCost(C, 0.1) <= s.money * 0.5 && N <= 10 ** B.PRETRAIN_LOG_N_MAX_P3;
-    if (ok) {
-      const plan = planPretrain(s, { N, D, ablation: 0.1 });
-      if (plan.ok && plan.capability > activeCapability(s) - (s.models.at(-1)?.sft ? 0 : 5)) startPretrain(s, { N, D, ablation: 0.1 });
+  for (const secs of B.AUTO_TRAIN_DURATIONS) {
+    const { N, D } = optimalND(flops * secs);
+    if (D > maxPretrainTokens(s) || N > 10 ** B.PRETRAIN_LOG_N_MAX_P3) return;
+    const plan = planPretrain(s, { N, D, ablation: 0.1 });
+    if (!plan.ok || trainingCost(plan.C, 0.1) > s.money * 0.5) return;
+    if (plan.capability + B.SFT_CAP_BONUS > activeCapability(s) + 1) {
+      startPretrain(s, { N, D, ablation: 0.1 });
       return;
     }
-    C /= 2;
   }
 }
 

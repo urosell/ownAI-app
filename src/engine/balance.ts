@@ -30,7 +30,7 @@ export const B = {
   TEMPLATES_COST: 50,
   TEMPLATES_SPEED_MULT: 1.5,
   TEMPLATES_QUALITY: 0.9,
-  ANGEL_UNLOCK_EARNED: 200,
+  ANGEL_UNLOCK_EARNED: 300,
   ANGEL_AMOUNT: 2000,
   AUDIT_INTERVAL: 60,
   AUDIT_P_PER_ANNOTATOR: 0.02,
@@ -42,8 +42,16 @@ export const B = {
   // ── Computación ──────────────────────────────────────────
   GPU: {
     consumer: { flops: 1e14, baseCost: 1500, growth: 1.12, upkeep: 0.05 },
-    datacenter: { flops: 4e14, baseCost: 30000, growth: 1.03, upkeep: 0.4, growthStep: 50 },
+    datacenter: { flops: 4e14, baseCost: 30000, growth: 1.03, upkeep: 0.4 },
     rented: { flops: 4e14, rentPerSecond: 3 },
+  },
+  // Cupo de la nube: el proveedor no te da más GPUs de las que "puede garantizar".
+  RENT_LIMIT: {
+    phase1: 8,
+    phase2Base: 300,
+    phase2PerQuarter: 200,
+    phase3Base: 4000,
+    phase3PerQuarter: 1500,
   },
   OWN_CHIPS_PRICE_MULT: 0.6,
   OWN_CHIPS_FLOPS_MULT: 1.25,
@@ -123,11 +131,11 @@ export const B = {
   LAWSUIT_SETTLE: 0.2, // acuerdo de licencia: 20 % del dinero, el riesgo vuelve a 0 y lo scrapeado pasa a licencia
 
   // ── Producto wrapper (Fase 1) ───────────────────────────
-  WRAPPER_USERS_K: 2,
+  WRAPPER_USERS_K: 0.5,
   WRAPPER_APPROACH: 0.02,
   WRAPPER_REVENUE_PER_USER: 0.05,
   WRAPPER_COST_PER_USER: 0.01,
-  WRAPPER_USERS_PER_GPU: 300, // usuarios que sirve 1e14 FLOP/s con un modelo de 1e9
+  WRAPPER_USERS_PER_GPU: 120, // usuarios que sirve 1e14 FLOP/s con un modelo de 1e9 parámetros
   BENCH_CONTAMINATION: 10,
   BENCH_CHECK_INTERVAL: 60,
   BENCH_DISCOVER_P: 0.05,
@@ -155,12 +163,14 @@ export const B = {
   // ── Inferencia y API (Fase 2+) ──────────────────────────
   TOKENS_PER_GPU: 2000,
   REF_PARAMS: 7e9,
-  DEMAND_BASE: 5e5,
+  DEMAND_BASE: 1e5,
   DEMAND_CAP_REF: 50,
   DEMAND_CAP_EXP: 3,
   DEMAND_PRICE_EXP: 1.5,
+  MARKET_GROWTH_PER_QUARTER: 1.2, // la adopción de la IA crece: demanda ×1,2 por trimestre desde la Fase 2
   MARKET_PRICE_START: 10,
   MARKET_PRICE_DROP: 0.15,
+  MARKET_PRICE_DROP_MINOR: 0.05, // lanzamiento de un rival que no supera al mejor modelo del mercado
   MARKET_PRICE_MIN: 0.2,
   API_PRICE_START: 10,
   LATENCY_OVERLOAD: 1.2,
@@ -201,7 +211,7 @@ export const B = {
   LAUNCH_HYPE_DIV: 5,
   VAL_ARR_BASE: 5,
   VAL_ARR_HYPE_DIV: 10,
-  VAL_CAP_K: 1e6,
+  VAL_CAP_K: 2e5,
   VAL_CAP_EXP: 1.5,
   SECONDS_PER_YEAR: 31536000,
   ROUND_FRACTION: 0.2,
@@ -234,14 +244,16 @@ export const B = {
 
   // ── Rivales ─────────────────────────────────────────────
   // cap(t) = capMax / (1 + e^(−r·(t − t0))), t en segundos desde el inicio de la Fase 2.
-  // Ajustados para empezar en 70/66/62 (por encima del mejor fine-tune, ~60) y llegar a ~91/88/84 a los 40 min.
+  // Ajustados para empezar en 87/85/83 (por encima de los primeros preentrenamientos) y llegar a ~97/94/91 a los 40 min.
+  // El más débil se estanca en 94 para que un jugador rezagado pueda alcanzarlo.
   RIVALS: [
-    { id: 'closedai', name: 'ClosedAI', capMax: 97, r: 0.000736, t0: -1294 },
-    { id: 'anthropomorphic', name: 'Anthropomorphic', capMax: 95, r: 0.000712, t0: -1155 },
-    { id: 'gemelo', name: 'Gemelo Labs', capMax: 92, r: 0.000677, t0: -1072 },
+    { id: 'closedai', name: 'ClosedAI', capMax: 99.7, r: 0.00069, t0: -2787 },
+    { id: 'anthropomorphic', name: 'Anthropomorphic', capMax: 97.5, r: 0.000572, t0: -3349 },
+    { id: 'gemelo', name: 'Gemelo Labs', capMax: 94, r: 0.00058, t0: -3486 },
   ],
   RIVAL_RELEASE_Q: [2, 4] as const,
   RIVAL_FOUNDED_CAPMAX: 85,
+  MAX_FOUNDED_RIVALS: 3,
   RIVAL_FOUNDED_R: 0.002,
   TOP_N_FOR_PHASE3: 3,
   PHASE3_VALUATION: 1e10,
@@ -250,6 +262,7 @@ export const B = {
   DC_COST: 5e8,
   DC_BUILD_SECONDS: 120,
   DC_SLOTS: 20000,
+  DC_PRICE_STEP: 200, // cada centro de datos propio: el precio sube un 3 % cada 200 GPUs más (compras al por mayor)
   DC_POWER_MW: 50,
   GARAGE_SLOTS: 2000, // huecos mínimos en colocation al entrar en la Fase 3
   LOCATIONS: [
@@ -288,7 +301,7 @@ export const B = {
   SAFETY_BASE: 0.2,
   LOBBY_SCANDAL_HYPE: -15,
   AUTO_BUY_RESERVE: 0.5, // la auto-compra gasta como mucho la mitad del dinero en cada compra
-  AUTO_TRAIN_TARGET_SECONDS: 120, // la auto-entrenadora elige C para que dure unos 2 minutos
+  AUTO_TRAIN_DURATIONS: [120, 300, 600, 900], // la auto-entrenadora prueba estas duraciones (s), de menor a mayor
   SAFETY_CUT_IDEAS_MULT: 1.2,
   INCIDENT_P: 0.15,
   INCIDENT_HYPE: -40,
@@ -309,8 +322,8 @@ export const B = {
     reasoning: { cost: 2000, phase: 3 },
     ownCluster: { cost: 1000, phase: 3 },
   } as Record<string, { cost: number; phase: number }>,
-  ARCH_BASE_COST: 500,
-  ARCH_GROWTH: 2,
+  ARCH_BASE_COST: 4000,
+  ARCH_GROWTH: 1.8,
   ARCH_LEVELS: 5,
   ARCH_E_MULT: 0.97,
   INFRA_BONUS: 0.05,

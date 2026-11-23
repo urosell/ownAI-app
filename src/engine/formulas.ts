@@ -17,16 +17,30 @@ export function consumerGpuCost(s: GameState): number {
   return Math.round(g.baseCost * g.growth ** s.gpus.consumer * gpuPriceMult(s));
 }
 
-/** Precio de la siguiente GPU de datacenter (sube un 3 % cada 50 GPUs). */
+/** Cuántas GPUs hacen falta para que el precio suba un 3 %: 1 (como en la spec) sin centros de datos propios. */
+export function datacenterPriceStep(s: GameState): number {
+  return 1 + s.datacenters.filter((d) => d.buildRemaining <= 0).length * B.DC_PRICE_STEP;
+}
+
+/** Precio de la siguiente GPU de datacenter: 30.000 € × 1,03^(n / paso). */
 export function datacenterGpuUnitCost(s: GameState, owned = s.gpus.datacenter): number {
   const g = B.GPU.datacenter;
-  return g.baseCost * g.growth ** Math.floor(owned / g.growthStep) * gpuPriceMult(s);
+  return g.baseCost * g.growth ** (owned / datacenterPriceStep(s)) * gpuPriceMult(s);
 }
 
 export function datacenterGpuBatchCost(s: GameState, n: number): number {
-  let total = 0;
-  for (let i = 0; i < n; i++) total += datacenterGpuUnitCost(s, s.gpus.datacenter + i);
-  return Math.round(total);
+  // Suma geométrica de los n siguientes precios.
+  const q = B.GPU.datacenter.growth ** (1 / datacenterPriceStep(s));
+  const first = datacenterGpuUnitCost(s);
+  return Math.round(n <= 0 ? 0 : first * ((q ** n - 1) / (q - 1)));
+}
+
+/** Máximo de GPUs que te alquila la nube (crece con los trimestres). */
+export function rentLimit(s: GameState): number {
+  const L = B.RENT_LIMIT;
+  if (s.phase <= 1) return L.phase1;
+  if (s.phase === 2) return L.phase2Base + L.phase2PerQuarter * (s.board.quarter - 1);
+  return L.phase3Base + L.phase3PerQuarter * (s.board.quarter - 1);
 }
 
 export function annotatorCost(s: GameState): number {
@@ -189,6 +203,11 @@ export function modelCapability(s: GameState, m: Model): number {
   return clamp(c, 0, 100);
 }
 
+/** Capacidad que tendrá el modelo cuando se le haga SFT (para decidir qué post-entrenar y lanzar). */
+export function potentialCapability(s: GameState, m: Model): number {
+  return modelCapability(s, m.kind === 'pretrain' ? { ...m, sft: true } : m);
+}
+
 export function activeModel(s: GameState): Model | null {
   return s.models.find((m) => m.id === s.activeModelId) ?? null;
 }
@@ -317,8 +336,14 @@ export function apiDemand(s: GameState): number {
     (cap / B.DEMAND_CAP_REF) ** B.DEMAND_CAP_EXP *
     (s.marketPrice / Math.max(0.01, s.apiPrice)) ** B.DEMAND_PRICE_EXP *
     (1 + s.hype / 100) *
-    rlhfDemandFactor(s)
+    rlhfDemandFactor(s) *
+    marketGrowth(s)
   );
+}
+
+/** El mercado crece cada trimestre desde la Fase 2. */
+export function marketGrowth(s: GameState): number {
+  return s.phase >= 2 ? B.MARKET_GROWTH_PER_QUARTER ** (s.board.quarter - 1 + s.board.timer / B.QUARTER_SECONDS) : 1;
 }
 
 /** Tokens/s comprometidos con contratos enterprise. */

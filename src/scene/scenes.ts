@@ -1,0 +1,64 @@
+// Definición de cada escena: huecos (slots) con nombre, posición, tamaño y capa.
+// Resolución lógica fija: 400 × 110 px.
+
+export const SCENE_W = 400;
+export const SCENE_H = 110;
+
+export type SceneId = 'garage' | 'office' | 'campus' | 'ending';
+
+export interface SlotDef {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  z: number;
+  /** Descripción para el generador de assets y para lectores de pantalla. */
+  desc: string;
+  /** Panel que se abre al hacer clic (opcional). */
+  panel?: string;
+  /** Variantes posibles (para el generador de assets). */
+  variants?: string[];
+}
+
+export interface SceneDef {
+  id: SceneId;
+  title: string;
+  background: string;
+  slots: SlotDef[];
+}
+
+export const SCENES: Record<SceneId, SceneDef> = {
+  garage: {
+    id: 'garage',
+    title: 'El garaje',
+    background: '#2a2438',
+    slots: [
+      { id: 'garage_bg', x: 0, y: 0, w: 400, h: 110, z: 0, desc: 'pared violeta oscura de garaje y suelo de cemento marrón' },
+      { id: 'garage_door', x: 10, y: 14, w: 86, h: 78, z: 1, desc: 'puerta de garaje enrollable cerrada' },
+      { id: 'annotators', x: 18, y: 58, w: 74, h: 34, z: 2, desc: 'anotadores humanos tecleando en una mesa plegable', variants: ['0', '1', '2', '3', '4'], panel: 'fake' },
+      { id: 'pizza_boxes', x: 104, y: 70, w: 30, h: 22, z: 2, desc: 'pila de cajas de pizza', variants: ['1', '2', '3'] },
+      { id: 'whiteboard', x: 118, y: 14, w: 76, h: 42, z: 1, desc: 'pizarra blanca con el plan de negocio', variants: ['0', '1'] },
+      { id: 'lamp', x: 197, y: 0, w: 7, h: 16, z: 1, desc: 'bombilla colgante con pantalla ámbar' },
+      { id: 'desk', x: 150, y: 66, w: 120, h: 26, z: 3, desc: 'mesa de madera' },
+      { id: 'laptop', x: 164, y: 46, w: 38, h: 20, z: 4, desc: 'portátil abierto con código en pantalla', variants: ['idle', 'typing'] },
+      { id: 'mug', x: 250, y: 58, w: 8, h: 8, z: 4, desc: 'taza de café' },
+      { id: 'founder', x: 200, y: 28, w: 36, h: 64, z: 4, desc: 'la fundadora sentada en una silla de oficina', variants: ['idle', 'typing', 'panic'] },
+      { id: 'gpu_rack', x: 290, y: 30, w: 46, h: 62, z: 2, desc: 'rack casero de GPUs con LEDs', variants: ['0', '1', '2', '3', '4'], panel: 'compute' },
+      { id: 'smoke', x: 296, y: 10, w: 34, h: 20, z: 5, desc: 'humo saliendo del rack', variants: ['off', 'on'] },
+      { id: 'power_strip', x: 268, y: 88, w: 22, h: 4, z: 3, desc: 'regleta en el suelo' },
+      { id: 'sticky_note', x: 345, y: 22, w: 24, h: 20, z: 2, desc: 'pósit amarillo con la caja que queda', variants: ['ok', 'low', 'broke'] },
+      { id: 'data_box', x: 356, y: 60, w: 30, h: 32, z: 2, desc: 'caja de cartón con discos duros de datos', variants: ['empty', 'some', 'full'], panel: 'data' },
+    ],
+  },
+  office: { id: 'office', title: 'La oficina', background: '#f4e9ff', slots: [] },
+  campus: { id: 'campus', title: 'El campus', background: '#14121a', slots: [] },
+  ending: { id: 'ending', title: 'Fin', background: '#14121a', slots: [] },
+};
+
+export function sceneForPhase(phase: number): SceneId {
+  if (phase <= 1) return 'garage';
+  if (phase === 2) return 'office';
+  if (phase === 3) return 'campus';
+  return 'ending';
+}

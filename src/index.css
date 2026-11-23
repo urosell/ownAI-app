@@ -1,0 +1,77 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-void: #14121a;
+  --color-panel: #1f1c29;
+  --color-line: #3a3450;
+  --color-line-2: #5b5470;
+  --color-ink: #ece8f4;
+  --color-muted: #a7a1b8;
+  --color-amber: #f5a623;
+  --color-amber-hi: #ffc35c;
+  --color-teal: #5fd3bc;
+  --color-bad: #ff8a8a;
+  --color-pink: #ff6fa8;
+  --color-violet: #b98cf0;
+  --color-warn-bg: #3a2a1a;
+  --color-warn-line: #8a5a1a;
+  --font-pixel: 'Silkscreen', ui-monospace, monospace;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+html,
+body {
+  margin: 0;
+  background: #14121a;
+  color: #ece8f4;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@keyframes blink {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0.25;
+  }
+}
+.blink {
+  animation: blink 1.4s steps(1) infinite;
+}
+.blink2 {
+  animation: blink 1.1s steps(1) infinite 0.5s;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+.scene-slot:hover {
+  filter: brightness(1.15);
+}
+
+input[type='range'] {
+  accent-color: #f5a623;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blink,
+  .blink2,
+  .fade-in {
+    animation: none;
+  }
+}

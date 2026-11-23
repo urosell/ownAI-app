@@ -1,16 +1,30 @@
 import { B } from './balance';
 import { spend } from './economy';
 import { fireEvent } from './events';
+import { resolveBoard, type BoardChoice } from './board';
 import {
   annotatorCost,
   archCost,
   clamp,
   consumerGpuCost,
+  datacenterGpuBatchCost,
+  gpuSlots,
+  ownedGpus,
   researcherCost,
+  trainingFlopsPerSecond,
 } from './formulas';
 import { addLog } from './log';
 import { enterPhase } from './phase';
 import { answerOne } from './phases/fake';
+import {
+  acceptContract,
+  hireSenior,
+  launchModel,
+  promise,
+  raiseRound,
+  rejectContract,
+  startSft,
+} from './phases/scaleup';
 import { discardRun, resumeRun, startFinetune, startPretrain, type FinetuneParams, type PretrainParams } from './phases/training';
 import { cloneState, type GameState, type NicheId, type Phase } from './state';
 import { NICHES } from '../content/text';
@@ -42,6 +56,19 @@ export type Action =
   | { type: 'resumeRun' }
   | { type: 'discardRun' }
   | { type: 'setActiveModel'; id: string }
+  // fase 2
+  | { type: 'buyDatacenterGpus'; n: number }
+  | { type: 'setApiPrice'; value: number }
+  | { type: 'promise' }
+  | { type: 'raiseRound' }
+  | { type: 'hireSenior' }
+  | { type: 'setEquity'; value: number }
+  | { type: 'startSft'; id: string }
+  | { type: 'setRlhf'; id: string; value: number }
+  | { type: 'launchModel'; id: string }
+  | { type: 'acceptContract'; id: number }
+  | { type: 'rejectContract'; id: number }
+  | { type: 'boardChoice'; choice: BoardChoice }
   // debug
   | { type: 'debugMoney'; amount: number }
   | { type: 'debugGpus'; amount: number }
@@ -177,6 +204,31 @@ registerActions({
     const m = s.models.find((x) => x.id === a.id);
     if (m && m.released) s.activeModelId = m.id;
   },
+
+  // ── Fase 2 ──
+  buyDatacenterGpus: (s, a) => {
+    if (s.phase < 2) return;
+    const n = Math.max(0, Math.min(a.n, gpuSlots(s) - ownedGpus(s)));
+    if (n > 0 && spend(s, datacenterGpuBatchCost(s, n))) s.gpus.datacenter += n;
+  },
+  setApiPrice: (s, a) => {
+    s.apiPrice = clamp(a.value, 0.1, 100);
+  },
+  promise: (s) => promise(s),
+  raiseRound: (s) => raiseRound(s),
+  hireSenior: (s) => hireSenior(s),
+  setEquity: (s, a) => {
+    s.equityPool = clamp(a.value, 0, 1);
+  },
+  startSft: (s, a) => startSft(s, a.id, trainingFlopsPerSecond(s)),
+  setRlhf: (s, a) => {
+    const m = s.models.find((x) => x.id === a.id);
+    if (m && m.kind === 'pretrain') m.rlhf = clamp(Math.round(a.value), 0, 100);
+  },
+  launchModel: (s, a) => launchModel(s, a.id),
+  acceptContract: (s, a) => acceptContract(s, a.id),
+  rejectContract: (s, a) => rejectContract(s, a.id),
+  boardChoice: (s, a) => resolveBoard(s, a.choice),
 
   // ── Debug ──
   debugMoney: (s, a) => {

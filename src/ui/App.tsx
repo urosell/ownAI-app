@@ -7,7 +7,21 @@ import { LogPanel } from './LogPanel';
 import { Modals } from './Modal';
 import { InboxPanel, InvestorsPanel, TeamPanel } from './panels/FakePanels';
 import { ComputePanel, DataPanel, ProductPanel, ResearchPanel } from './panels/GaragePanels';
+import {
+  ApiPanel,
+  ArchitectureButton,
+  BoardModal,
+  BoardPanel,
+  ContractsPanel,
+  DatacenterComputePanel,
+  HypePanel,
+  ModelsPanel,
+  PretrainPanel,
+  TalentPanel,
+} from './panels/ScaleupPanels';
 import { TrainingPanel } from './panels/TrainingPanel';
+
+const PHASE2_UPGRADES = ['checkpoints', 'monitoring', 'fastNetwork', 'synthetic', 'reasoning', 'ownCluster'];
 import { startLoop, useGame } from './store';
 import { TopBar } from './TopBar';
 
@@ -46,6 +60,23 @@ export function App() {
                 <ResearchPanel s={s} d={d} />
               </>
             )}
+            {s.phase >= 2 && (
+              <>
+                <PretrainPanel s={s} d={d} />
+                <HypePanel s={s} d={d} />
+                <ModelsPanel s={s} d={d} />
+                <ApiPanel s={s} d={d} />
+                <BoardPanel s={s} />
+                <ContractsPanel s={s} d={d} />
+                <DatacenterComputePanel s={s} d={d} />
+                <TalentPanel s={s} d={d} />
+                <ResearchPanel s={s} d={d} upgrades={PHASE2_UPGRADES}>
+                  <ArchitectureButton s={s} d={d} />
+                </ResearchPanel>
+                <DataPanel s={s} d={d} />
+                {s.niche && <ProductPanel s={s} d={d} />}
+              </>
+            )}
             {s.phase <= 1 && (
               <>
                 <InboxPanel s={s} d={d} />
@@ -62,7 +93,7 @@ export function App() {
 
         <SaveBar s={s} />
       </div>
-      <Modals s={s} d={d} />
+      <Modals s={s} d={d} extra={<BoardModal s={s} d={d} />} />
     </div>
   );
 }

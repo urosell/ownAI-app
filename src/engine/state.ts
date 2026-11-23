@@ -113,7 +113,7 @@ export interface BoardState {
 }
 
 export type Modal =
-  | { kind: 'board'; arrTarget: number; capTarget: number; arr: number; cap: number; met: boolean }
+  | { kind: 'board'; quarter: number; arrTarget: number; capTarget: number; arr: number; cap: number; met: boolean; text: string }
   | { kind: 'lawsuit'; amount: number; settle: number }
   | { kind: 'phase'; phase: Phase };
 
@@ -146,7 +146,8 @@ export interface GameState {
   hype: number;
   expectation: number;
   valuation: number;
-  dilution: number;
+  valuationMult: number; // memoria del mercado: lanzamientos decepcionantes, juntas…
+  dilution: number; // % de la empresa que ya no es tuya (0–100)
   // fase 0
   queue: Prompt[];
   nextPromptId: number;
@@ -170,7 +171,7 @@ export interface GameState {
   // talento
   researchers: number;
   seniorResearchers: number;
-  equityPool: number; // 0–1
+  equityPool: number; // 0–1: parte del pool de equity (10 % de la empresa) repartida
   ideas: number;
   safetyTeams: number;
   // modelos
@@ -216,6 +217,10 @@ export interface GameState {
   eventTimer: number;
   eventCooldowns: Record<string, number>;
   scandalTimer: number;
+  incidentLog: number;
+  sentiment: number; // 0–1, sólo para la escena
+  roundsRaised: number;
+  rivalsBorn: number; // momento (s) en que empezaron los rivales
   bankruptTimer: number;
   unpaidTimer: number;
   incomeBuffer: number; // ingresos recurrentes desde el último tick (para la media de €/s)
@@ -247,6 +252,7 @@ export function initialState(
     hype: 0,
     expectation: 0,
     valuation: 0,
+    valuationMult: 1,
     dilution: 0,
     queue: [],
     nextPromptId: 1,
@@ -329,6 +335,10 @@ export function initialState(
     eventTimer: 0,
     eventCooldowns: {},
     scandalTimer: 0,
+    incidentLog: 0,
+    sentiment: 0.5,
+    roundsRaised: 0,
+    rivalsBorn: 0,
     bankruptTimer: 0,
     unpaidTimer: 0,
     incomeBuffer: 0,

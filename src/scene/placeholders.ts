@@ -1,6 +1,7 @@
 // Dibujo con rectángulos de cada slot. Coordenadas relativas al origen del slot.
 // Cuando exista el sprite `<slot>.<variante>` en el manifiesto, sustituye a esto.
 import { OFFICE_EXTRA as O, PALETTE as P } from './palette';
+import type { SceneId } from './scenes';
 import type { SceneData } from './variants';
 
 export interface RectShape {
@@ -24,9 +25,16 @@ export interface TextShape {
   anchor?: 'start' | 'middle' | 'end';
 }
 
-export type Shape = RectShape | TextShape;
+export interface LineShape {
+  points: string;
+  stroke: string;
+  width: number;
+}
+
+export type Shape = RectShape | TextShape | LineShape;
 
 export const isText = (s: Shape): s is TextShape => 'text' in s;
+export const isLine = (s: Shape): s is LineShape => 'points' in s;
 
 type Painter = (variant: string, d: SceneData) => Shape[];
 
@@ -191,10 +199,102 @@ const garage: Record<string, Painter> = {
   },
 };
 
-export const PLACEHOLDERS: Record<string, Painter> = {
-  ...garage,
+function officePerson(skin: string, hair: string, shirt: string, legs: string, dx: number): Shape[] {
+  return [
+    r(dx + 1, 0, 10, 3, hair),
+    r(dx + 1, 2, 10, 10, skin),
+    r(dx, 12, 12, 14, shirt),
+    r(dx + 1, 26, 4, 22, legs),
+    r(dx + 7, 26, 4, 22, legs),
+  ];
+}
+
+const office: Record<string, Painter> = {
+  office_bg: () => [r(0, 0, 400, 92, O.lilac), r(0, 92, 400, 18, O.carpet), r(0, 92, 400, 2, O.carpetEdge), r(0, 100, 400, 1, '#c9b08e')],
+  neon_sign: (v) => [
+    r(0, 0, 104, 20, P.wall),
+    ...(v === 'hot' ? [r(2, 2, 100, 1, O.neon, { blink: 1 }), r(2, 17, 100, 1, O.neon, { blink: 2 })] : []),
+    t('MOVE FAST, RAISE ROUNDS', 52, 13, 6.5, O.neon, 'middle'),
+  ],
+  poufs: (v) => [
+    r(0, 14, 28, 12, O.pouf),
+    r(4, 10, 20, 4, O.pouf),
+    r(8, 8, 12, 2, O.poufLight),
+    r(32, 16, 24, 10, O.mint),
+    r(36, 12, 16, 4, O.mint),
+    ...(v === 'busy' ? [r(12, 2, 8, 8, P.skin), r(12, 0, 8, 3, '#7a4a2a'), r(10, 10, 12, 6, O.sky), r(20, 9, 6, 4, P.metal, { frame: 0 }), r(20, 10, 6, 4, P.metal, { frame: 1 })] : []),
+  ],
+  pingpong: (v) => [
+    r(0, 8, 62, 4, O.table),
+    r(30, 4, 2, 4, O.white),
+    r(4, 12, 3, 16, P.border),
+    r(55, 12, 3, 16, P.border),
+    ...(v === 'play' ? [r(14, 0, 3, 3, O.white, { frame: 0 }), r(44, 1, 3, 3, O.white, { frame: 1 })] : [r(16, 2, 3, 3, O.white)]),
+  ],
+  valuation_screen: (v) => [
+    r(0, 0, 70, 40, P.border),
+    r(3, 3, 64, 34, P.screen),
+    t('valoración', 6, 10, 4.5, '#a7a1b8'),
+    v === 'up'
+      ? { points: '6,32 18,30 28,28 38,22 48,18 56,12 64,7', stroke: P.amber, width: 2 }
+      : { points: '6,12 18,15 28,14 38,21 48,24 56,29 64,32', stroke: '#ff8a8a', width: 2 },
+  ],
+  standing_desk: () => [
+    r(18, 0, 6, 10, P.border),
+    r(0, 10, 44, 4, O.white),
+    r(4, 14, 3, 26, P.metalLight),
+    r(37, 14, 3, 26, P.metalLight),
+    r(8, 2, 16, 8, P.metal),
+    r(10, 4, 12, 4, P.teal, { blink: 1 }),
+  ],
+  engineer: (v) => [
+    ...officePerson(P.skinDark, P.screen, O.white, P.denim, 1),
+    ...(v === 'typing' ? [r(-6, 15, 8, 2, P.skinDark, { frame: 0 }), r(-6, 16, 8, 2, P.skinDark, { frame: 1 })] : []),
+  ],
+  founder: (v) =>
+    v === 'panic'
+      ? [...officePerson(P.skin, O.blond, P.amber, P.wall, 15), r(11, 2, 4, 12, P.amber), r(27, 2, 4, 12, P.amber), r(11, 0, 4, 2, P.skin), r(27, 0, 4, 2, P.skin), r(18, 6, 2, 2, P.screen), r(13, 8, 2, 3, P.teal, { blink: 1 })]
+      : [...officePerson(P.skin, O.blond, P.amber, P.wall, 15), r(8, 16, 7, 2, P.skin), r(0, 14, 8, 6, P.paper), ...(v === 'typing' ? [r(2, 10, 1, 3, P.metalLight, { frame: 0 }), r(4, 9, 1, 3, P.metalLight, { frame: 1 })] : [])],
+  plant: () => [r(4, 20, 8, 20, '#7a4a2a'), r(0, 6, 16, 14, O.plant), r(4, 0, 8, 6, O.plant)],
+  server_room: (v) => {
+    const n = Number(v);
+    const shapes: Shape[] = [r(0, 0, 120, 82, O.glass), r(0, 0, 120, 2, O.glassEdge), r(0, 0, 2, 82, O.glassEdge)];
+    [8, 36, 64, 92].forEach((x, i) => {
+      if (i >= n) {
+        shapes.push(r(x, 12, 22, 70, O.glassEdge));
+        return;
+      }
+      shapes.push(
+        r(x, 12, 22, 70, P.rack),
+        r(x + 4, 18, 3, 3, P.teal, { blink: ((i % 2) + 1) as 1 | 2 }),
+        r(x + 4, 30, 3, 3, i === 3 ? P.red : P.teal, { blink: (((i + 1) % 2) + 1) as 1 | 2 }),
+        r(x + 4, 42, 3, 3, P.amber),
+        r(x + 8, 54, 10, 2, P.card),
+      );
+    });
+    shapes.push(r(18, 4, 80, 6, O.white), t('SALA DE GPUS · NO ENTRAR', 58, 8.8, 4, P.border, 'middle'));
+    return shapes;
+  },
+  servers_smoke: (v) =>
+    v === 'on'
+      ? [
+          r(10, 12, 12, 8, P.grey, { frame: 0 }),
+          r(30, 6, 14, 8, P.metal, { frame: 0 }),
+          r(54, 10, 12, 8, P.grey, { frame: 0 }),
+          r(16, 6, 12, 8, P.metal, { frame: 1 }),
+          r(40, 10, 14, 8, P.grey, { frame: 1 }),
+          r(60, 2, 12, 8, P.metalLight, { frame: 1 }),
+        ]
+      : [],
 };
 
-export function placeholderShapes(slot: string, variant: string, d: SceneData): Shape[] {
-  return PLACEHOLDERS[slot]?.(variant, d) ?? [];
+export const PLACEHOLDERS: Record<SceneId, Record<string, Painter>> = {
+  garage,
+  office,
+  campus: {},
+  ending: {},
+};
+
+export function placeholderShapes(scene: SceneId, slot: string, variant: string, d: SceneData): Shape[] {
+  return PLACEHOLDERS[scene][slot]?.(variant, d) ?? [];
 }

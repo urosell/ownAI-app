@@ -1,5 +1,5 @@
 // Funciones estado → variante de cada slot. La escena solo lee el estado; nunca lo modifica.
-import { ownedGpus, runwayMonths, totalTokens } from '../engine/formulas';
+import { arr, ownedGpus, runwayMonths, totalTokens } from '../engine/formulas';
 import type { GameState } from '../engine/state';
 import { sceneForPhase, type SceneId } from './scenes';
 
@@ -30,9 +30,23 @@ const GARAGE: Record<string, VariantFn> = {
   },
 };
 
+const OFFICE: Record<string, VariantFn> = {
+  neon_sign: (s) => (s.hype > 60 ? 'hot' : 'on'),
+  poufs: (s) => (s.users > 0 || s.researchers > 0 ? 'busy' : 'empty'),
+  pingpong: (s) => (s.hype > 70 ? 'play' : 'idle'),
+  valuation_screen: (s) => (s.valuationMult >= 1 && arr(s) >= s.board.lastArr ? 'up' : 'down'),
+  engineer: (s) => (isBusy(s) ? 'typing' : 'idle'),
+  founder: (s) => (isPanic(s) ? 'panic' : isBusy(s) ? 'typing' : 'idle'),
+  server_room: (s) => {
+    const g = s.gpus.datacenter + s.gpus.rented + s.gpus.consumer / 4;
+    return g < 100 ? '1' : g < 500 ? '2' : g < 2000 ? '3' : '4';
+  },
+  servers_smoke: (s) => (isPanic(s) ? 'on' : 'off'),
+};
+
 const VARIANTS: Record<SceneId, Record<string, VariantFn>> = {
   garage: GARAGE,
-  office: {},
+  office: OFFICE,
   campus: {},
   ending: {},
 };

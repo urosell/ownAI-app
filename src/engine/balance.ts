@@ -165,6 +165,12 @@ export const B = {
   API_PRICE_START: 10,
   LATENCY_OVERLOAD: 1.2,
   LATENCY_REP_PER_SECOND: -0.05,
+  VALUATION_MULT_RECOVERY: 0.002, // el mercado olvida: el multiplicador vuelve a 1 un 0,2 % por segundo
+  CONTRACT_TPS_FRACTION: [0.15, 0.35] as const, // tokens/s pedidos, fracción de tu capacidad actual
+  CONTRACT_PREMIUM: 1.5, // pagan un 50 % más que la API
+  EQUITY_POOL_SIZE: 10, // % de la empresa
+  RLHF_SCANDAL_INTERVAL: 60,
+  PATIENCE_ARR_GROWTH: 1.2,
   OPT: {
     quantization: { eff: 1.8, cap: -1 },
     distillation: { eff: 2, cap: -3 },
@@ -227,10 +233,12 @@ export const B = {
   CEO_HYPE: -10,
 
   // ── Rivales ─────────────────────────────────────────────
+  // cap(t) = capMax / (1 + e^(−r·(t − t0))), t en segundos desde el inicio de la Fase 2.
+  // Ajustados para empezar en 70/66/62 (por encima del mejor fine-tune, ~60) y llegar a ~91/88/84 a los 40 min.
   RIVALS: [
-    { id: 'openerai', name: 'OpenerAI', capMax: 96, r: 0.0011, t0: 2600 },
-    { id: 'anthropomorphic', name: 'Anthropomorphic', capMax: 94, r: 0.001, t0: 3000 },
-    { id: 'deepfake', name: 'DeepFake Labs', capMax: 90, r: 0.0013, t0: 2300 },
+    { id: 'closedai', name: 'ClosedAI', capMax: 97, r: 0.000736, t0: -1294 },
+    { id: 'anthropomorphic', name: 'Anthropomorphic', capMax: 95, r: 0.000712, t0: -1155 },
+    { id: 'gemelo', name: 'Gemelo Labs', capMax: 92, r: 0.000677, t0: -1072 },
   ],
   RIVAL_RELEASE_Q: [2, 4] as const,
   RIVAL_FOUNDED_CAPMAX: 85,

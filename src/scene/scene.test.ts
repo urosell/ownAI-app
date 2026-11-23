@@ -24,7 +24,7 @@ describe('manifiesto', () => {
   it('un sprite que falta no rompe nada: se usa el placeholder', () => {
     expect(resolveSprite(m, 'gpu_rack', '3')).toBeNull();
     expect(resolveSprite(EMPTY_MANIFEST, 'founder', 'idle')).toBeNull();
-    expect(placeholderShapes('founder', 'idle', sceneData(initialState(1))).length).toBeGreaterThan(0);
+    expect(placeholderShapes('garage', 'founder', 'idle', sceneData(initialState(1))).length).toBeGreaterThan(0);
   });
 
   it('descarta entradas mal formadas y manifiestos basura', () => {
@@ -41,13 +41,17 @@ describe('manifiesto', () => {
 });
 
 describe('escenas', () => {
-  it('todos los slots del garaje tienen placeholder', () => {
+  it('todos los slots tienen placeholder en todas sus variantes', () => {
     const d = sceneData(initialState(1));
-    for (const slot of SCENES.garage.slots) {
-      const v = d.variants[slot.id];
-      // annotators.0 y smoke.off están vacíos a propósito
-      if ((slot.id === 'annotators' && v === '0') || (slot.id === 'smoke' && v === 'off')) continue;
-      expect(placeholderShapes(slot.id, v, d).length, slot.id).toBeGreaterThan(0);
+    for (const scene of Object.values(SCENES)) {
+      for (const slot of scene.slots) {
+        for (const v of slot.variants ?? ['']) {
+          // Variantes vacías a propósito (nadie / sin humo)
+          if (['annotators.0', 'smoke.off', 'servers_smoke.off'].includes(`${slot.id}.${v}`)) continue;
+          if (scene.id === 'ending' || scene.id === 'campus') continue;
+          expect(placeholderShapes(scene.id, slot.id, v, d).length, `${scene.id}/${slot.id}.${v}`).toBeGreaterThan(0);
+        }
+      }
     }
   });
 

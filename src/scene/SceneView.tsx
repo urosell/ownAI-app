@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GameState } from '../engine/state';
 import { resolveSprite, spritePosition, type Manifest } from './manifest';
-import { isText, placeholderShapes } from './placeholders';
+import { isLine, isText, placeholderShapes } from './placeholders';
 import { SCENE_H, SCENE_W, SCENES } from './scenes';
 import { sceneData } from './variants';
 
@@ -120,12 +120,14 @@ export function SceneView({ state, manifest, onSlotClick, maxHeight = 340 }: Pro
             );
           }
 
-          const shapes = placeholderShapes(slot.id, variant, data);
+          const shapes = placeholderShapes(data.scene, slot.id, variant, data);
           return (
             <g key={slot.id} transform={`translate(${slot.x} ${slot.y})`} onClick={onClick} className={cls} data-slot={slot.id}>
               {clickable && <rect width={slot.w} height={slot.h} fill="transparent" />}
               {shapes.map((sh, i) =>
-                isText(sh) ? (
+                isLine(sh) ? (
+                  <polyline key={i} points={sh.points} fill="none" stroke={sh.stroke} strokeWidth={sh.width} />
+                ) : isText(sh) ? (
                   <text
                     key={i}
                     x={sh.x}

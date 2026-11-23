@@ -184,6 +184,7 @@ export function tickTraining(s: GameState, dt: number): void {
     run.status = 'failed';
     run.resumeCost = Math.round(run.spent * randRange(s, B.RESUME_COST_MIN, B.RESUME_COST_MAX));
     s.failedStreak += 1;
+    s.stats.failures += 1;
     addLog(s, 'fail', `Entrenamiento #${s.runsStarted} fallido: ${failureText(run.failureId)}`);
     return;
   }

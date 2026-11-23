@@ -4,7 +4,9 @@ import { tickEvents } from './events';
 import { clamp, gpuUpkeep, salaries } from './formulas';
 import { tickFake } from './phases/fake';
 import { tickBenchmark, tickData, tickResearch, tickWrapper } from './phases/garage';
+import { tickFrontier } from './phases/frontier';
 import { tickScaleup } from './phases/scaleup';
+import { checkEndings } from './endings';
 import { tickTraining } from './phases/training';
 import { tickBoard } from './board';
 import { cloneState, type GameState } from './state';
@@ -31,6 +33,7 @@ export function tickInPlace(s: GameState, dt: number): GameState {
   running += tickWrapper(s, dt);
   tickBenchmark(s, dt);
   running += tickScaleup(s, dt);
+  running += tickFrontier(s, dt);
   for (const sys of systems) {
     const extra = sys(s, dt);
     if (typeof extra === 'number') running += extra;
@@ -42,6 +45,7 @@ export function tickInPlace(s: GameState, dt: number): GameState {
 
   tickEvents(s, dt);
   if (!s.modal) tickBoard(s, dt);
+  checkEndings(s, dt);
 
   // Media móvil de los ingresos recurrentes (todo lo que pasa por `earn`).
   const k = Math.min(1, dt / B.INCOME_EMA_SECONDS);

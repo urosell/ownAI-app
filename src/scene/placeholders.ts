@@ -288,11 +288,126 @@ const office: Record<string, Painter> = {
       : [],
 };
 
+const STARS = [12, 40, 77, 103, 150, 188, 231, 266, 301, 338, 372, 391].map((x, i) => [x, 4 + ((i * 7) % 26)]);
+
+function hall(x: number, color: string): Shape[] {
+  return [
+    r(x, 10, 40, 42, color),
+    r(x, 10, 40, 3, P.rackShelf),
+    ...[18, 26, 34, 42].map((y) => r(x + 4, y, 32, 2, P.card)),
+    r(x + 6, 20, 2, 2, P.teal, { blink: 1 }),
+    r(x + 30, 36, 2, 2, P.amber, { blink: 2 }),
+  ];
+}
+
+const campus: Record<string, Painter> = {
+  campus_bg: () => [
+    r(0, 0, 400, 92, '#1b1830'),
+    r(0, 60, 400, 32, '#231f3a'),
+    ...STARS.map(([x, y], i) => r(x, y, 1, 1, P.paper, i % 3 === 0 ? { blink: 1 } : {})),
+    r(0, 92, 400, 18, '#2b2733'),
+    r(0, 92, 400, 2, P.slate),
+    ...[20, 80, 140, 200, 260, 320, 380].map((x) => r(x, 100, 12, 1, P.yellow)),
+  ],
+  datacenters: (v) => {
+    const n = Number(v);
+    const s: Shape[] = [];
+    if (n === 0) s.push(r(0, 44, 132, 8, P.slate), t('parcela en obras', 40, 40, 4, '#a7a1b8'));
+    for (let i = 0; i < n; i++) s.push(...hall(i * 46, P.rack));
+    return s;
+  },
+  crane: (v) =>
+    v === 'on'
+      ? [r(18, 0, 3, 86, P.amber), r(0, 0, 40, 3, P.amber), r(4, 3, 1, 20, P.grey), r(2, 23, 5, 4, P.metal, { frame: 0 }), r(2, 25, 5, 4, P.metal, { frame: 1 })]
+      : [],
+  hq: (v) => [
+    r(0, 6, 86, 72, '#2f3a5a'),
+    ...[14, 26, 38, 50].flatMap((y) => [8, 26, 44, 62].map((x) => r(x, y, 14, 8, (x + y) % 3 === 0 ? '#ffd88a' : '#3e4c72'))),
+    r(20, 64, 46, 14, P.screen),
+    r(0, 4, 86, 3, P.amber),
+    r(16, 0, 54, 4, P.wall),
+    t('OwnAI', 43, 4, 4.5, v === 'hype' ? O.neon : P.amber, 'middle'),
+  ],
+  chip_fab: (v) =>
+    v === 'none'
+      ? [r(0, 30, 36, 10, P.slate), t('parcela', 18, 28, 4, '#a7a1b8', 'middle')]
+      : [
+          r(0, 8, 36, 32, v === 'done' ? P.purple : P.slateDark),
+          r(10, 16, 16, 14, v === 'done' ? P.teal : P.grey),
+          r(13, 19, 10, 8, P.screen),
+          ...[0, 4, 8].flatMap((d) => [r(7, 18 + d, 3, 1, P.metalLight), r(26, 18 + d, 3, 1, P.metalLight)]),
+          ...(v === 'building' ? [r(0, 4, 36, 2, P.amber, { blink: 1 })] : []),
+        ],
+  power: (v) => {
+    const s: Shape[] = [r(4, 10, 3, 62, P.grey), r(0, 14, 12, 2, P.grey), r(1, 22, 10, 2, P.grey)];
+    if (v === 'solar' || v === 'both') {
+      for (let i = 0; i < 4; i++) s.push(r(16 + i * 18, 58, 16, 8, O.ink), r(16 + i * 18, 58, 16, 1, O.sky), r(23 + i * 18, 66, 2, 6, P.grey));
+    }
+    if (v === 'nuclear' || v === 'both') {
+      s.push(r(60, 18, 30, 54, P.metal), r(56, 60, 38, 12, P.metal), r(64, 14, 22, 6, P.metalLight));
+      s.push(r(66, 4, 10, 8, P.paper, { frame: 0 }), r(70, 0, 12, 8, P.paper, { frame: 1 }));
+    }
+    if (v === 'grid') s.push(t('red eléctrica', 50, 70, 4, '#a7a1b8', 'middle'));
+    return s;
+  },
+  protest: (v) =>
+    v === 'on'
+      ? [0, 18, 36, 54].flatMap((x, i) => [
+          r(x + 2, 6, 4, 4, P.skin),
+          r(x + 1, 10, 6, 8, [P.red, P.teal, P.yellow, P.pink][i]),
+          r(x + 6, i % 2 ? 0 : 1, 12, 6, P.paper, { frame: i % 2 }),
+          r(x + 6, i % 2 ? 1 : 0, 12, 6, P.paper, { frame: (i + 1) % 2 }),
+          r(x + 11, 6, 1, 6, P.grey),
+        ])
+      : [],
+  smoke: (v) =>
+    v === 'on'
+      ? [r(10, 8, 12, 8, P.grey, { frame: 0 }), r(40, 4, 14, 8, P.metal, { frame: 0 }), r(20, 2, 12, 8, P.metal, { frame: 1 }), r(52, 8, 14, 8, P.grey, { frame: 1 })]
+      : [],
+};
+
+const ending: Record<string, Painter> = {
+  ending_bg: (v) => [r(0, 0, 400, 92, v === 'dark' ? '#0d0b12' : P.wall), r(0, 92, 400, 18, v === 'dark' ? P.void : P.floor)],
+  centerpiece: (v) => {
+    switch (v) {
+      case 'agi':
+        return [r(40, 6, 20, 76, P.screen), r(42, 8, 16, 72, '#1f2a3a'), r(48, 20, 4, 4, P.teal, { blink: 1 }), r(36, 82, 28, 4, P.metal), t('hola', 50, 50, 5, P.teal, 'middle')];
+      case 'agiUnsafe':
+        return [r(20, 10, 60, 40, P.screen), r(24, 14, 52, 32, '#000000'), r(38, 24, 4, 4, P.red, { blink: 1 }), r(58, 24, 4, 4, P.red, { blink: 1 }), r(38, 36, 24, 2, P.red), r(46, 50, 8, 32, P.grey)];
+      case 'ipo':
+        return [r(36, 10, 28, 24, P.amber), r(32, 34, 36, 4, P.amber), r(48, 38, 4, 8, P.yellow, { frame: 0 }), r(46, 38, 4, 8, P.yellow, { frame: 1 }), r(0, 60, 100, 10, P.screen), t('OWNAI +140 %', 50, 67, 5, P.teal, 'middle')];
+      case 'acquired':
+        return [r(10, 10, 80, 72, P.metal), r(14, 14, 72, 64, P.metalLight), t('MEGACORP', 50, 40, 7, P.screen, 'middle'), t('+ OwnAI', 50, 52, 5, P.amber, 'middle')];
+      case 'bubble':
+        return [
+          r(30, 20, 40, 40, P.pink, { frame: 0 }),
+          r(34, 24, 8, 8, O.poufLight, { frame: 0 }),
+          ...[0, 1, 2, 3, 4, 5].map((i) => r(20 + i * 12, 30 + (i % 2) * 20, 4, 4, P.pink, { frame: 1 })),
+          r(0, 70, 100, 10, P.screen),
+          t('V −96 %', 50, 77, 5, P.red, 'middle'),
+        ];
+      default:
+        return [r(10, 10, 80, 72, P.slate), ...[8, 18, 28, 38, 48, 58].map((y) => r(10, 10 + y, 80, 2, P.slateDark)), t('SE VENDE', 50, 44, 7, P.paper, 'middle')];
+    }
+  },
+  founder: (v) =>
+    v === 'gone'
+      ? [r(4, 36, 12, 6, P.chair)]
+      : [
+          r(4, 0, 12, 12, P.skin),
+          r(4, 0, 12, 4, P.hair),
+          r(2, 12, 16, 16, P.amber),
+          r(4, 28, 5, 14, P.denim),
+          r(11, 28, 5, 14, P.denim),
+          ...(v === 'happy' ? [r(-2, 10, 4, 4, P.skin), r(18, 10, 4, 4, P.skin), r(8, 8, 4, 1, P.screen)] : [r(7, 9, 6, 1, P.screen)]),
+        ],
+};
+
 export const PLACEHOLDERS: Record<SceneId, Record<string, Painter>> = {
   garage,
   office,
-  campus: {},
-  ending: {},
+  campus,
+  ending,
 };
 
 export function placeholderShapes(scene: SceneId, slot: string, variant: string, d: SceneData): Shape[] {

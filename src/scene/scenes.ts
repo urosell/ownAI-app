@@ -69,8 +69,31 @@ export const SCENES: Record<SceneId, SceneDef> = {
       { id: 'servers_smoke', x: 290, y: 0, w: 80, h: 22, z: 4, desc: 'humo saliendo de la sala de servidores', variants: ['off', 'on'] },
     ],
   },
-  campus: { id: 'campus', title: 'El campus', background: '#14121a', slots: [] },
-  ending: { id: 'ending', title: 'Fin', background: '#14121a', slots: [] },
+  campus: {
+    id: 'campus',
+    title: 'El campus',
+    background: '#1b1830',
+    slots: [
+      { id: 'campus_bg', x: 0, y: 0, w: 400, h: 110, z: 0, desc: 'cielo nocturno violeta con estrellas y suelo de asfalto' },
+      { id: 'datacenters', x: 8, y: 40, w: 132, h: 52, z: 2, desc: 'naves de centros de datos con rejillas de ventilación', variants: ['0', '1', '2', '3'], panel: 'datacenters' },
+      { id: 'crane', x: 112, y: 6, w: 40, h: 86, z: 3, desc: 'grúa de obra', variants: ['off', 'on'] },
+      { id: 'hq', x: 158, y: 14, w: 86, h: 78, z: 2, desc: 'sede de OwnAI: edificio de cristal con el logo en ámbar', variants: ['calm', 'hype'], panel: 'hype' },
+      { id: 'chip_fab', x: 250, y: 52, w: 36, h: 40, z: 2, desc: 'pequeña fábrica de chips con un chip dibujado', variants: ['none', 'building', 'done'], panel: 'datacenters' },
+      { id: 'power', x: 292, y: 20, w: 104, h: 72, z: 1, desc: 'paneles solares y torre de refrigeración nuclear', variants: ['grid', 'solar', 'nuclear', 'both'], panel: 'datacenters' },
+      { id: 'protest', x: 170, y: 86, w: 70, h: 20, z: 4, desc: 'manifestantes con pancartas delante de la sede', variants: ['off', 'on'], panel: 'regulation' },
+      { id: 'smoke', x: 20, y: 22, w: 80, h: 18, z: 4, desc: 'humo saliendo de los centros de datos', variants: ['off', 'on'] },
+    ],
+  },
+  ending: {
+    id: 'ending',
+    title: 'Fin',
+    background: '#14121a',
+    slots: [
+      { id: 'ending_bg', x: 0, y: 0, w: 400, h: 110, z: 0, desc: 'fondo del final', variants: ['light', 'dark'] },
+      { id: 'centerpiece', x: 150, y: 10, w: 100, h: 82, z: 1, desc: 'símbolo del final', variants: ['agi', 'agiUnsafe', 'ipo', 'acquired', 'shutdown', 'bubble'] },
+      { id: 'founder', x: 262, y: 50, w: 20, h: 42, z: 2, desc: 'la fundadora mirando', variants: ['happy', 'sad', 'gone'] },
+    ],
+  },
 };
 
 export function sceneForPhase(phase: number): SceneId {

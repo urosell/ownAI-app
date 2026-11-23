@@ -251,7 +251,7 @@ export const B = {
   DC_BUILD_SECONDS: 120,
   DC_SLOTS: 20000,
   DC_POWER_MW: 50,
-  GARAGE_SLOTS: 2000, // huecos para GPU antes de tener centros de datos
+  GARAGE_SLOTS: 2000, // huecos mínimos en colocation al entrar en la Fase 3
   LOCATIONS: [
     { id: 'aragon', name: 'Desierto de Aragón', energyMult: 0.9, regulation: 1.0, subsidy: 0.1 },
     { id: 'texas', name: 'Texas', energyMult: 0.8, regulation: 0.7, subsidy: 0 },
@@ -259,7 +259,8 @@ export const B = {
   ],
   GPU_KW: 1,
   GRID_PRICE_MWH: 80,
-  GRID_MAX_MW: 60,
+  GRID_MAX_MW: 150, // la red no da para más: a partir de aquí, solar o nuclear
+  GRID_STEP_MW: 10,
   SOLAR_COST: 2e8,
   SOLAR_MW: 100,
   SOLAR_SECONDS: 90,
@@ -284,6 +285,10 @@ export const B = {
   SAFETY_TEAM_COST_RESEARCHERS: 2,
   SAFETY_TEAM_COST_IDEAS: 300,
   SAFETY_PER_TEAM: 0.12,
+  SAFETY_BASE: 0.2,
+  LOBBY_SCANDAL_HYPE: -15,
+  AUTO_BUY_RESERVE: 0.5, // la auto-compra gasta como mucho la mitad del dinero en cada compra
+  AUTO_TRAIN_TARGET_SECONDS: 120, // la auto-entrenadora elige C para que dure unos 2 minutos
   SAFETY_CUT_IDEAS_MULT: 1.2,
   INCIDENT_P: 0.15,
   INCIDENT_HYPE: -40,

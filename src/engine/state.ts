@@ -202,6 +202,9 @@ export interface GameState {
   powerPlants: PowerPlant[];
   powerMW: number;
   gridMW: number;
+  colocationSlots: number; // huecos para GPU fuera de tus centros de datos (Fase 3)
+  nextFacilityId: number;
+  stats: { failures: number; launches: number; incidents: number; peakValuation: number; lawsuits: number };
   ownChips: boolean;
   chipsRemaining: number; // >0 mientras se investiga
   safety: number;
@@ -301,6 +304,9 @@ export function initialState(
     powerPlants: [],
     powerMW: 0,
     gridMW: 0,
+    colocationSlots: 0,
+    nextFacilityId: 1,
+    stats: { failures: 0, launches: 0, incidents: 0, peakValuation: 0, lawsuits: 0 },
     ownChips: false,
     chipsRemaining: 0,
     safety: 0.2,

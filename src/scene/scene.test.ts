@@ -47,8 +47,7 @@ describe('escenas', () => {
       for (const slot of scene.slots) {
         for (const v of slot.variants ?? ['']) {
           // Variantes vacías a propósito (nadie / sin humo)
-          if (['annotators.0', 'smoke.off', 'servers_smoke.off'].includes(`${slot.id}.${v}`)) continue;
-          if (scene.id === 'ending' || scene.id === 'campus') continue;
+          if (['annotators.0', 'smoke.off', 'servers_smoke.off', 'crane.off', 'protest.off'].includes(`${slot.id}.${v}`)) continue;
           expect(placeholderShapes(scene.id, slot.id, v, d).length, `${scene.id}/${slot.id}.${v}`).toBeGreaterThan(0);
         }
       }

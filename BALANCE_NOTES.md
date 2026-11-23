@@ -26,3 +26,13 @@ Cambios respecto a la spec (`docs/OWNAI_SPEC.md`). Todos los valores viven en `s
 - **Contratos**: piden entre el 15 % y el 35 % de tu capacidad de servicio actual y pagan un 50 % más que la API. Las ofertas caducan a los 60 s.
 - **Junta · "decir la verdad"**: la "paciencia" baja el crecimiento de ARR exigido el trimestre siguiente de ×1,5 a ×1,2.
 - **RLHF bajo (<40)**: el escándalo cuesta hype −10 y reputación −10.
+
+## Hito 4 · Fase 3, finales y prestigio
+
+- **Energía**: cada GPU consume 1 kW y la instalación entera multiplica por un PUE de 2,5 (`PUE`), de modo que 20.000 GPUs = 50 MW, como dice la spec para un centro de datos. Como 1 s real = 1 h, la factura por segundo es MW × €/MWh.
+- **Al entrar en la Fase 3** se te asigna un contrato de red igual a tu consumo actual y huecos de "colocation" para las GPUs que ya tenías (mínimo 2.000), para que nada deje de funcionar de golpe. La red está limitada a 150 MW (`GRID_MAX_MW`): a partir de ahí, solar o nuclear.
+- **Seguridad**: base 0,2 y +0,12 por equipo (`SAFETY_BASE`, `SAFETY_PER_TEAM`). Cada equipo cuesta 2 investigadores y 300 ideas; con 4 equipos llegas al 0,6 que pide el final "AGI".
+- **Lobby con escándalo**: hype −15 (la spec no fija el efecto).
+- **Automatizaciones** (con capacidad ≥ 85): cuestan 3.000 / 2.000 / 5.000 ideas. La auto-entrenadora elige C para que el entrenamiento dure ~2 min con D = 20·N, usa ablaciones del 10 %, hace SFT, evalúa si el cumplimiento está por debajo de 50 y lanza si mejora al modelo activo.
+- **Estalla la burbuja**: la condición tiene que mantenerse 30 s seguidos (`BUBBLE_GRACE_SECONDS`) para que una promesa puntual no acabe la partida al instante.
+- **Desbloqueo de modificadores**: cada final desbloquea uno (AGI → un rival menos; AGI sin frenos → regulación estricta; burbuja → mercado en burbuja; salida a bolsa, adquisición y cierre → 2 GPUs).

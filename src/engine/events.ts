@@ -52,6 +52,7 @@ export function fireEvent(s: GameState, id: EventId): void {
       const amount = Math.max(0, s.money) * B.LAWSUIT_FINE;
       const settle = Math.max(0, s.money) * B.LAWSUIT_SETTLE;
       addLog(s, 'press', text(s, id));
+      s.stats.lawsuits += 1;
       s.modal = { kind: 'lawsuit', amount, settle };
       break;
     }

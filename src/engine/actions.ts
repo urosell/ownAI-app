@@ -15,7 +15,19 @@ import {
 } from './formulas';
 import { addLog } from './log';
 import { enterPhase } from './phase';
+import { goPublic, triggerEnding } from './endings';
 import { answerOne } from './phases/fake';
+import {
+  addGrid,
+  buildDatacenter,
+  buildPlant,
+  buyAutomation,
+  cutSafetyTeam,
+  evaluateModel,
+  hireSafetyTeam,
+  lobby,
+  researchChips,
+} from './phases/frontier';
 import {
   acceptContract,
   hireSenior,
@@ -26,7 +38,7 @@ import {
   startSft,
 } from './phases/scaleup';
 import { discardRun, resumeRun, startFinetune, startPretrain, type FinetuneParams, type PretrainParams } from './phases/training';
-import { cloneState, type GameState, type NicheId, type Phase } from './state';
+import { cloneState, type EndingId, type GameState, type NicheId, type Phase } from './state';
 import { NICHES } from '../content/text';
 
 export type Action =
@@ -69,11 +81,23 @@ export type Action =
   | { type: 'acceptContract'; id: number }
   | { type: 'rejectContract'; id: number }
   | { type: 'boardChoice'; choice: BoardChoice }
+  // fase 3
+  | { type: 'buildDatacenter'; location: string }
+  | { type: 'addGrid'; mw: number }
+  | { type: 'buildPlant'; kind: 'solar' | 'nuclear' }
+  | { type: 'researchChips' }
+  | { type: 'evaluateModel'; id: string }
+  | { type: 'lobby' }
+  | { type: 'hireSafetyTeam' }
+  | { type: 'cutSafetyTeam' }
+  | { type: 'buyAutomation'; id: 'autoTrain' | 'autoBuy' | 'autoResearch' }
+  | { type: 'goPublic' }
   // debug
   | { type: 'debugMoney'; amount: number }
   | { type: 'debugGpus'; amount: number }
   | { type: 'debugPhase'; phase: Phase }
-  | { type: 'debugEvent'; id: string };
+  | { type: 'debugEvent'; id: string }
+  | { type: 'debugEnding'; id: EndingId };
 
 type Handler<A extends Action = Action> = (s: GameState, a: A) => void;
 type Handlers = { [K in Action['type']]?: Handler<Extract<Action, { type: K }>> };
@@ -230,6 +254,18 @@ registerActions({
   rejectContract: (s, a) => rejectContract(s, a.id),
   boardChoice: (s, a) => resolveBoard(s, a.choice),
 
+  // ── Fase 3 ──
+  buildDatacenter: (s, a) => buildDatacenter(s, a.location),
+  addGrid: (s, a) => addGrid(s, a.mw),
+  buildPlant: (s, a) => buildPlant(s, a.kind),
+  researchChips: (s) => researchChips(s),
+  evaluateModel: (s, a) => evaluateModel(s, a.id),
+  lobby: (s) => lobby(s),
+  hireSafetyTeam: (s) => hireSafetyTeam(s),
+  cutSafetyTeam: (s) => cutSafetyTeam(s),
+  buyAutomation: (s, a) => buyAutomation(s, a.id),
+  goPublic: (s) => goPublic(s),
+
   // ── Debug ──
   debugMoney: (s, a) => {
     s.money += a.amount;
@@ -246,6 +282,7 @@ registerActions({
     }
     s.modal = null;
   },
+  debugEnding: (s, a) => triggerEnding(s, a.id),
   debugEvent: (s, a) => {
     fireEvent(s, a.id as Parameters<typeof fireEvent>[1]);
   },

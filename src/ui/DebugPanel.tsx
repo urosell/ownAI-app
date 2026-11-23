@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { EVENT_IDS } from '../engine/events';
 import { exportSave, importSave } from '../engine/save';
-import type { GameState, Phase } from '../engine/state';
+import type { EndingId, GameState, Phase } from '../engine/state';
+import { ENDINGS } from '../content/endings';
 import { Btn, Panel } from './kit';
 import { useGame } from './store';
 import type { Dispatch } from './types';
@@ -12,6 +13,7 @@ export function DebugPanel({ s, d }: { s: GameState; d: Dispatch }) {
   const speed = useGame((x) => x.speed);
   const setSpeed = useGame((x) => x.setSpeed);
   const [ev, setEv] = useState<string>(EVENT_IDS[0]);
+  const [end, setEnd] = useState<EndingId>('agi');
   return (
     <Panel title="Debug" aside={`t = ${s.t.toFixed(1)} s · semilla ${s.rngSeed}`} basis={300} collapsible>
       <div className="flex flex-wrap gap-2">
@@ -45,6 +47,16 @@ export function DebugPanel({ s, d }: { s: GameState; d: Dispatch }) {
         </select>
         <Btn small onClick={() => d({ type: 'debugEvent', id: ev })}>
           Forzar evento
+        </Btn>
+      </div>
+      <div className="flex flex-wrap gap-2 items-center">
+        <select value={end} onChange={(e) => setEnd(e.target.value as EndingId)} className="bg-void text-ink border border-line-2 min-h-9 px-2 font-mono text-[13px]">
+          {(Object.keys(ENDINGS) as EndingId[]).map((id) => (
+            <option key={id}>{id}</option>
+          ))}
+        </select>
+        <Btn small onClick={() => d({ type: 'debugEnding', id: end })}>
+          Forzar final
         </Btn>
       </div>
     </Panel>

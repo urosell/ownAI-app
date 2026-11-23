@@ -44,11 +44,31 @@ const OFFICE: Record<string, VariantFn> = {
   servers_smoke: (s) => (isPanic(s) ? 'on' : 'off'),
 };
 
+const CAMPUS: Record<string, VariantFn> = {
+  datacenters: (s) => String(Math.min(3, s.datacenters.filter((d) => d.buildRemaining <= 0).length)),
+  crane: (s) => (s.datacenters.some((d) => d.buildRemaining > 0) || s.powerPlants.some((p) => p.buildRemaining > 0) ? 'on' : 'off'),
+  hq: (s) => (s.hype > 60 ? 'hype' : 'calm'),
+  chip_fab: (s) => (s.ownChips ? 'done' : s.chipsRemaining > 0 ? 'building' : 'none'),
+  power: (s) => {
+    const solar = s.powerPlants.some((p) => p.kind === 'solar' && p.buildRemaining <= 0);
+    const nuclear = s.powerPlants.some((p) => p.kind === 'nuclear' && p.buildRemaining <= 0);
+    return solar && nuclear ? 'both' : nuclear ? 'nuclear' : solar ? 'solar' : 'grid';
+  },
+  protest: (s) => (s.compliance < 30 || s.t < s.timed.hearingUntil ? 'on' : 'off'),
+  smoke: (s) => (isPanic(s) ? 'on' : 'off'),
+};
+
+const ENDING: Record<string, VariantFn> = {
+  ending_bg: (s) => (s.ending === 'agiUnsafe' || s.ending === 'shutdown' || s.ending === 'bubble' ? 'dark' : 'light'),
+  centerpiece: (s) => s.ending ?? 'shutdown',
+  founder: (s) => (s.ending === 'agiUnsafe' ? 'gone' : s.ending === 'agi' || s.ending === 'ipo' || s.ending === 'acquired' ? 'happy' : 'sad'),
+};
+
 const VARIANTS: Record<SceneId, Record<string, VariantFn>> = {
   garage: GARAGE,
   office: OFFICE,
-  campus: {},
-  ending: {},
+  campus: CAMPUS,
+  ending: ENDING,
 };
 
 function isBusy(s: GameState): boolean {

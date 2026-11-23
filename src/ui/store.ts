@@ -38,7 +38,7 @@ export const useGame = create<Store>((set, get) => ({
   newGame: (modifiers = []) => {
     const prev = get().game;
     clearStorage();
-    set({ game: initialState(undefined, prev.prestige, modifiers) });
+    set({ game: initialState(undefined, structuredClone(prev.prestige), modifiers.filter((m) => prev.prestige.unlockedModifiers.includes(m))) });
   },
   setSpeed: (n) => set({ speed: n }),
   save: () => saveToStorage(get().game),

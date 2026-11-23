@@ -334,6 +334,7 @@ export function tickScaleup(s: GameState, dt: number): number {
   s.hype = Math.max(0, s.hype - s.hype * B.HYPE_DECAY * dt);
   s.valuationMult += (1 - s.valuationMult) * Math.min(1, B.VALUATION_MULT_RECOVERY * dt);
   s.valuation = valuationOf(s) * s.valuationMult;
+  s.stats.peakValuation = Math.max(s.stats.peakValuation, s.valuation);
 
   // Transición a la Fase 3: top 3 del ranking o V ≥ 1e10 €
   if (s.phase === 2 && !s.modal && (s.valuation >= B.PHASE3_VALUATION || (activeModel(s)?.released && myRank(s) <= B.TOP_N_FOR_PHASE3 && activeCapability(s) > 0))) {

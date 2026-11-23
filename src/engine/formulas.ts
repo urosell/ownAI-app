@@ -406,7 +406,7 @@ export function energyCost(s: GameState): number {
 export function gpuSlots(s: GameState): number {
   if (s.phase < 3) return Infinity;
   const built = s.datacenters.filter((d) => d.buildRemaining <= 0).length;
-  return B.GARAGE_SLOTS + built * B.DC_SLOTS;
+  return Math.max(B.GARAGE_SLOTS, s.colocationSlots) + built * B.DC_SLOTS;
 }
 
 export function ideasPerSecond(s: GameState): number {

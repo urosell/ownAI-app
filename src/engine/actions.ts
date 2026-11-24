@@ -54,6 +54,7 @@ export type Action =
   | { type: 'buyTemplates' }
   | { type: 'buyMarketing' }
   | { type: 'setPromptPrice'; value: number }
+  | { type: 'nudgePromptPrice'; steps: number }
   | { type: 'pitchAngels' }
   | { type: 'buyFirstGpu' }
   // fase 1: computación, datos, talento, producto, entrenamiento
@@ -136,6 +137,10 @@ registerActions({
     if (s.annotators <= 0) return;
     s.annotators -= 1;
     addLog(s, 'info', 'Despides a un anotador. El comunicado habla de "automatización".');
+  },
+  nudgePromptPrice: (s, a) => {
+    const step = B.PROMPT_PRICE_STEP;
+    s.promptPrice = clamp(Math.round(s.promptPrice / step + a.steps) * step, B.PROMPT_PRICE_MIN, B.PROMPT_PRICE_MAX);
   },
   setPromptPrice: (s, a) => {
     const step = B.PROMPT_PRICE_STEP;

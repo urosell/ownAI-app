@@ -13,7 +13,7 @@ import {
 } from '../../engine/formulas';
 import type { GameState } from '../../engine/state';
 import { MARKETING_CAMPAIGNS, PROMPT_SAMPLES, TIPS } from '../../content/text';
-import { Bar, Btn, Panel, Row, Slider, Small, Warn } from '../kit';
+import { Bar, Btn, Panel, Row, Small, Warn } from '../kit';
 import type { Dispatch } from '../types';
 
 export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
@@ -31,15 +31,28 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
       ) : (
         <Small tone="good">Marketing al máximo: ya no queda canal en el que no salgas.</Small>
       )}
-      <Slider
-        label="Precio por prompt"
-        value={s.promptPrice}
-        min={B.PROMPT_PRICE_MIN}
-        max={B.PROMPT_PRICE_MAX}
-        step={B.PROMPT_PRICE_STEP}
-        onChange={(v) => d({ type: 'setPromptPrice', value: v })}
-        display={`${fmt(s.promptPrice, { decimals: 1 })} €`}
-      />
+      <div className="flex items-center justify-between gap-2 text-[13px]">
+        <span className="text-muted">Precio por prompt</span>
+        <span className="flex items-center gap-2">
+          <Btn
+            small
+            onClick={() => d({ type: 'nudgePromptPrice', steps: -1 })}
+            disabled={s.promptPrice <= B.PROMPT_PRICE_MIN + 1e-9}
+            tip="Más barato: llegan más prompts y ganas más reputación."
+          >
+            −0,1
+          </Btn>
+          <span className="tabular-nums w-14 text-center font-medium">{s.promptPrice.toFixed(1).replace('.', ',')} €</span>
+          <Btn
+            small
+            onClick={() => d({ type: 'nudgePromptPrice', steps: 1 })}
+            disabled={s.promptPrice >= B.PROMPT_PRICE_MAX - 1e-9}
+            tip="Más caro: ganas más por prompt, pero llegan menos y la reputación sube menos (o baja)."
+          >
+            +0,1
+          </Btn>
+        </span>
+      </div>
       <Row label="Llegan" value={`${fmt(promptRate(s))} prompts/s (${pct(promptPriceDemand(s) - 1, true)} por precio)`} />
       <Row
         label="Reputación por prompt"

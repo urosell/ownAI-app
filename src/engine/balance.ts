@@ -17,6 +17,12 @@ export const B = {
   // ── Fase 0 · IA de mentira ───────────────────────────────
   PROMPT_RATE_BASE: 0.5, // prompts/s
   PROMPT_RATE_REP_DIVISOR: 50, // rate × (1 + rep/50)
+  // Campañas de marketing (no están en la spec): cada nivel suma un 40 % a la llegada de prompts.
+  // Con reputación 100 y los 5 niveles: 0,5 × 3 × 3 = 4,5 prompts/s.
+  MARKETING_BONUS: 0.4,
+  MARKETING_BASE_COST: 60,
+  MARKETING_GROWTH: 2,
+  MARKETING_MAX: 5,
   PROMPT_TTL: 20,
   QUEUE_MAX: 10,
   PROMPT_REWARD: 1, // € × calidad

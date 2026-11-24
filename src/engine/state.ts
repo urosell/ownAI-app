@@ -155,6 +155,7 @@ export interface GameState {
   annotators: number;
   annotatorProgress: number;
   templates: boolean;
+  marketing: number; // nivel de campañas de marketing (Fase 0–1)
   auditActive: boolean;
   auditRisk: number;
   auditTimer: number;
@@ -263,6 +264,7 @@ export function initialState(
     annotators: 0,
     annotatorProgress: 0,
     templates: false,
+    marketing: 0,
     auditActive: false,
     auditRisk: 0,
     auditTimer: 0,

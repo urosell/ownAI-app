@@ -8,6 +8,15 @@ export const NICHES: Record<NicheId, { label: string; blurb: string }> = {
   marketing: { label: 'ChatGPT para agencias de marketing', blurb: 'Convierte cualquier cosa en un hilo de 12 tuits.' },
 };
 
+// Campañas de marketing de la Fase 0, en orden.
+export const MARKETING_CAMPAIGNS = [
+  { label: 'Post en LinkedIn', log: 'Publicas en LinkedIn "Hoy despedí a mi miedo y contraté a una IA". 40.000 reacciones.' },
+  { label: 'Hilo viral en X', log: 'Tu hilo "10 prompts que te harán millonario" se hace viral. Ninguno funciona.' },
+  { label: 'Lanzamiento en Product Hunt', log: 'Número 1 del día en Product Hunt. Compites contra una app para regar plantas.' },
+  { label: 'Patrocinar un podcast', log: 'El presentador lee tu anuncio con voz de "esto me lo han pagado".' },
+  { label: 'Valla en la autopista', log: 'Valla gigante: "Nuestra IA nunca duerme". Técnicamente, tus anotadores tampoco.' },
+];
+
 export const PHASE_NAMES = ['IA de mentira', 'Garaje', 'Scale-up', 'Laboratorio frontera', 'Final'];
 
 export const PROMPT_SAMPLES = [
@@ -129,6 +138,7 @@ export const BOARD_OPTIONS: Record<string, { label: string; effect: string; cost
 export const TIPS: Record<string, string> = {
   answer: 'Respondes tú, a mano. Así empezaron todos (según sus memorias, no según la realidad).',
   annotator: 'Una persona que responde por la "IA". Dato real: el etiquetado humano sigue siendo enorme en la industria.',
+  marketing: 'Más gente probando tu "IA" = más prompts. Necesitarás más anotadores para atenderlos. Dato real: muchas startups gastan más en marketing que en I+D.',
   templates: 'Respuestas de plantilla: más rápido, un poco peor. Lo llamarás "alineamiento".',
   pitch: 'Una demo en directo con alguien tecleando en la habitación de al lado. Clásico.',
   firstGpu: 'Una GPU de segunda mano con olor a minería de cripto.',

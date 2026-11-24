@@ -442,7 +442,11 @@ export function ideasPerSecond(s: GameState): number {
 }
 
 export function promptRate(s: GameState): number {
-  return B.PROMPT_RATE_BASE * (1 + s.reputation / B.PROMPT_RATE_REP_DIVISOR);
+  return B.PROMPT_RATE_BASE * (1 + s.reputation / B.PROMPT_RATE_REP_DIVISOR) * (1 + s.marketing * B.MARKETING_BONUS);
+}
+
+export function marketingCost(s: GameState): number {
+  return Math.round(B.MARKETING_BASE_COST * B.MARKETING_GROWTH ** s.marketing);
 }
 
 export function annotatorRate(s: GameState): number {

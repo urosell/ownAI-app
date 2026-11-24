@@ -82,3 +82,8 @@ Finales del bot: AGI ×10, AGI sin frenos ×10. Con 40 semillas sale también al
 - **El bot nunca llega a la salida a bolsa** (5e11 €): no promete y no optimiza el precio para la valoración. La valoración llega a ~5e11 solo en partidas muy largas. Habrá que comprobar con jugadores humanos si es alcanzable sin forzar.
 - **La mitad de los finales del bot son "AGI sin frenos"**: compra investigación antes que equipos de seguridad. Es coherente con la sátira, pero conviene revisarlo cuando juegue gente.
 - El bot no usa promesas, contaminación del benchmark ni lobby: esas palancas no están balanceadas por la simulación.
+
+## Después del Hito 5 · Primeras pruebas
+
+- **Despedir anotadores** (nuevo): con la reputación a 100 los prompts se quedan en 1,5/s y los anotadores de sobra se comían todos los ingresos.
+- **Campañas de marketing** (nuevo, no está en la spec): 5 niveles en la bandeja de prompts (`MARKETING_*`), cada uno +40 % de llegada de prompts. Cuestan 60 × 2ⁿ € (60, 120, 240, 480, 960). Con reputación 100 y todos los niveles llegan 4,5 prompts/s. La simulación no cambia (el bot apenas los compra antes del pitch).

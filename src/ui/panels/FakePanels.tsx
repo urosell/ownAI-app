@@ -1,9 +1,9 @@
 // Fase 0 · IA de mentira
 import { B } from '../../engine/balance';
 import { money, pct, fmt } from '../../engine/format';
-import { annotatorCost, annotatorRate, promptQuality, promptRate } from '../../engine/formulas';
+import { annotatorCost, annotatorRate, marketingCost, promptQuality, promptRate } from '../../engine/formulas';
 import type { GameState } from '../../engine/state';
-import { PROMPT_SAMPLES, TIPS } from '../../content/text';
+import { MARKETING_CAMPAIGNS, PROMPT_SAMPLES, TIPS } from '../../content/text';
 import { Bar, Btn, Panel, Row, Small, Warn } from '../kit';
 import type { Dispatch } from '../types';
 
@@ -28,6 +28,13 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
       <Btn primary onClick={() => d({ type: 'answerPrompt' })} disabled={s.queue.length === 0} tip={TIPS.answer}>
         Responder prompt · +{money(B.PROMPT_REWARD * promptQuality(s))}
       </Btn>
+      {s.marketing < B.MARKETING_MAX ? (
+        <Btn onClick={() => d({ type: 'buyMarketing' })} disabled={s.money < marketingCost(s)} tip={TIPS.marketing}>
+          {MARKETING_CAMPAIGNS[s.marketing].label} · {money(marketingCost(s))} · +{Math.round(B.MARKETING_BONUS * 100)} % prompts
+        </Btn>
+      ) : (
+        <Small tone="good">Marketing al máximo: ya no queda canal en el que no salgas.</Small>
+      )}
     </Panel>
   );
 }
@@ -43,7 +50,7 @@ export function TeamPanel({ s, d }: { s: GameState; d: Dispatch }) {
     <Panel title="Anotadores" aside="la IA es gente" collapsible={s.phase > 0}>
       <Row label="Anotadores" value={s.annotators} />
       <Row label="Pueden responder" value={`${fmt(capacity)} prompts/s`} />
-      <Row label="Llegan" value={`${fmt(arrival)} prompts/s${s.reputation >= 100 ? ' (máximo)' : ''}`} />
+      <Row label="Llegan" value={`${fmt(arrival)} prompts/s${s.reputation >= 100 && s.marketing < B.MARKETING_MAX ? ' (máx. por reputación: prueba marketing)' : ''}`} />
       <Row label="Sueldos" value={`−${fmt(s.annotators * B.ANNOTATOR_SALARY)} €/s`} tone="bad" />
       {idle > 0 && (
         <Warn label={`${idle} anotador${idle > 1 ? 'es' : ''} de sobra: cobran por esperar`} />

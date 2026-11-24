@@ -11,6 +11,7 @@ import {
   consumerGpuCost,
   datacenterGpuBatchCost,
   gpuSlots,
+  marketingCost,
   maxPretrainTokens,
   modelCapability,
   potentialCapability,
@@ -63,9 +64,10 @@ function phase0(s: GameState) {
   const needed = Math.ceil(promptRate(s) / (B.ANNOTATOR_SPEED * (s.templates ? B.TEMPLATES_SPEED_MULT : 1)));
   if (s.annotators < needed && s.money >= annotatorCost(s) + 5) act(s, { type: 'hireAnnotator' });
   if (!s.templates && s.annotators >= 2 && s.money >= B.TEMPLATES_COST + 20) act(s, { type: 'buyTemplates' });
+  // Más prompts cuando los anotadores ya cubren todo lo que llega
+  if (s.marketing < B.MARKETING_MAX && annotatorRate(s) >= promptRate(s) && s.money >= marketingCost(s) + 20) act(s, { type: 'buyMarketing' });
   if (!s.angelPitched && s.totalEarned >= B.ANGEL_UNLOCK_EARNED) act(s, { type: 'pitchAngels' });
   if (s.money >= B.FIRST_GPU_COST) act(s, { type: 'buyFirstGpu' });
-  void annotatorRate;
 }
 
 function handleRun(s: GameState): boolean {

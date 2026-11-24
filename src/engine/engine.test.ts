@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { apply } from './actions';
 import { B } from './balance';
 import { fmt, money } from './format';
-import { capabilityFromLoss, chinchillaLoss } from './formulas';
+import { capabilityFromLoss, chinchillaLoss, promptRate } from './formulas';
 import { rand } from './rng';
 import { deserialize, exportSave, importSave, serialize } from './save';
 import { initialState } from './state';
@@ -99,6 +99,15 @@ describe('fase 0', () => {
     for (let i = 0; i < 200; i++) tickInPlace(s, 0.1);
     expect(s.money).toBeGreaterThanOrEqual(0);
     expect(s.annotators).toBeLessThan(10);
+  });
+
+  it('el marketing sube la llegada de prompts por encima del tope de reputación', () => {
+    let s = { ...initialState(1), reputation: 100, money: 10000 };
+    expect(promptRate(s)).toBeCloseTo(1.5, 5);
+    for (let i = 0; i < 10; i++) s = apply(s, { type: 'buyMarketing' });
+    expect(s.marketing).toBe(B.MARKETING_MAX);
+    expect(promptRate(s)).toBeCloseTo(1.5 * (1 + B.MARKETING_MAX * B.MARKETING_BONUS), 5);
+    expect(s.money).toBe(10000 - [0, 1, 2, 3, 4].reduce((a, n) => a + B.MARKETING_BASE_COST * B.MARKETING_GROWTH ** n, 0));
   });
 
   it('se puede despedir anotadores', () => {

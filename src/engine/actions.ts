@@ -7,6 +7,7 @@ import {
   archCost,
   clamp,
   consumerGpuCost,
+  marketingCost,
   datacenterGpuBatchCost,
   gpuSlots,
   ownedGpus,
@@ -40,7 +41,7 @@ import {
 } from './phases/scaleup';
 import { discardRun, resumeRun, startFinetune, startPretrain, type FinetuneParams, type PretrainParams } from './phases/training';
 import { cloneState, type EndingId, type GameState, type NicheId, type Phase } from './state';
-import { NICHES } from '../content/text';
+import { MARKETING_CAMPAIGNS, NICHES } from '../content/text';
 
 export type Action =
   // generales
@@ -51,6 +52,7 @@ export type Action =
   | { type: 'hireAnnotator' }
   | { type: 'fireAnnotator' }
   | { type: 'buyTemplates' }
+  | { type: 'buyMarketing' }
   | { type: 'pitchAngels' }
   | { type: 'buyFirstGpu' }
   // fase 1: computación, datos, talento, producto, entrenamiento
@@ -133,6 +135,12 @@ registerActions({
     if (s.annotators <= 0) return;
     s.annotators -= 1;
     addLog(s, 'info', 'Despides a un anotador. El comunicado habla de "automatización".');
+  },
+  buyMarketing: (s) => {
+    if (s.phase > 1 || s.marketing >= B.MARKETING_MAX) return;
+    if (!spend(s, marketingCost(s))) return;
+    addLog(s, 'info', MARKETING_CAMPAIGNS[s.marketing].log);
+    s.marketing += 1;
   },
   buyTemplates: (s) => {
     if (!s.templates && spend(s, B.TEMPLATES_COST)) {

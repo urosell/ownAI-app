@@ -30,9 +30,10 @@ import { canRaise, launchBlockedReason, nextPromiseText, poachProbability, sftCo
 import type { GameState } from '../../engine/state';
 import { BOARD_OPTIONS, TIPS } from '../../content/text';
 import { ModalFrame } from '../Modal';
-import { Bar, Btn, Panel, Row, Slider, Small, Warn } from '../kit';
+import { Bar, Btn, Panel, Row, Slider, Small, Tip, Warn } from '../kit';
 import { AllocControl } from './GaragePanels';
 import { PBreakdown, RunView } from './TrainingPanel';
+import { HELP, HELP_HEADINGS } from '../../content/help';
 import type { Dispatch } from '../types';
 
 export function PretrainPanel({ s, d }: { s: GameState; d: Dispatch }) {
@@ -58,17 +59,17 @@ export function PretrainPanel({ s, d }: { s: GameState; d: Dispatch }) {
         <>
           <div className="flex flex-wrap gap-4">
             <div className="flex flex-col gap-2.5" style={{ flex: '3 1 280px', minWidth: 0 }}>
-              <Slider label="Parámetros (N)" value={logN} min={B.PRETRAIN_LOG_N_MIN} max={maxN} step={0.1} onChange={setLogN} display={fmt(N)} />
-              <Slider label="Tokens (D)" value={logD} min={B.PRETRAIN_LOG_D_MIN} max={maxD} step={0.1} onChange={setLogD} display={`${fmt(D)} · máx. ${fmt(maxPretrainTokens(s))}`} />
+              <Slider label="Parámetros (N)" tip={HELP["Parámetros (N)"]} value={logN} min={B.PRETRAIN_LOG_N_MIN} max={maxN} step={0.1} onChange={setLogN} display={fmt(N)} />
+              <Slider label="Tokens (D)" tip={HELP["Tokens (D)"]} value={logD} min={B.PRETRAIN_LOG_D_MIN} max={maxD} step={0.1} onChange={setLogD} display={`${fmt(D)} · máx. ${fmt(maxPretrainTokens(s))}`} />
               <div className="flex flex-col gap-0.5">
-                <Row label="Computación C = 6·N·D" value={`${sci(computeC(N, D))} FLOPs`} />
+                <Row label="Computación C = 6·N·D" tip={HELP["Computación C = 6·N·D"]} value={`${sci(computeC(N, D))} FLOPs`} />
                 <Row
-                  label="Eficiencia de escalado"
+                  label="Eficiencia de escalado" tip={HELP["Eficiencia de escalado"]}
                   value={`${pct(eff)} · ${eff > 0.9 ? 'casi óptimo' : D / N < 20 ? 'faltan datos' : 'sobran datos'}`}
                   tone={eff > 0.9 ? 'good' : 'warn'}
                 />
-                <Row label="Capacidad esperada" value={fmt(plan.capability, { decimals: 0 })} />
-                <Row label="Duración · coste" value={`${Number.isFinite(dur) ? `${Math.ceil(dur)} s` : '—'} · ${money(plan.cost)}`} />
+                <Row label="Capacidad esperada" tip={HELP["Capacidad esperada"]} value={fmt(plan.capability, { decimals: 0 })} />
+                <Row label="Duración · coste" tip={HELP["Duración · coste"]} value={`${Number.isFinite(dur) ? `${Math.ceil(dur)} s` : '—'} · ${money(plan.cost)}`} />
               </div>
               <Btn small onClick={() => setLogD(Math.min(maxD, logN + Math.log10(B.CHINCHILLA_TOKENS_PER_PARAM)))} tip={TIPS.pretrain}>
                 Ajustar D ≈ 20·N
@@ -138,7 +139,7 @@ export function ModelsPanel({ s, d, evalButton }: { s: GameState; d: Dispatch; e
             )}
             {m.kind === 'pretrain' && m.rlhf !== null && (
               <Slider
-                label="Amabilidad (RLHF)"
+                label="Amabilidad (RLHF)" tip={HELP["Amabilidad (RLHF)"]}
                 value={m.rlhf}
                 min={0}
                 max={100}
@@ -167,17 +168,17 @@ export function HypePanel({ s, d }: { s: GameState; d: Dispatch }) {
   const roundBlock = canRaise(s);
   return (
     <Panel title="Hype y expectativas" id="hype">
-      <Row label="Hype" value={fmt(s.hype, { decimals: 0 })} />
+      <Row label="Hype" tip={HELP["Hype"]} value={fmt(s.hype, { decimals: 0 })} />
       <Bar value={s.hype / 100} color="#ff6fa8" />
-      <Row label="Capacidad real" value={fmt(cap, { decimals: 0 })} />
+      <Row label="Capacidad real" tip={HELP["Capacidad real"]} value={fmt(cap, { decimals: 0 })} />
       <Bar value={cap / 100} color="#5fd3bc" />
-      <Row label="Expectativa" value={fmt(s.expectation, { decimals: 0 })} />
+      <Row label="Expectativa" tip={HELP["Expectativa"]} value={fmt(s.expectation, { decimals: 0 })} />
       <Bar value={s.expectation / 100} color="#F5A623" />
-      <Warn label="Deuda de expectativas" value={fmt(debt, { decimals: 0 })} />
+      <Warn label="Deuda de expectativas" tip={HELP["Deuda de expectativas"]} value={fmt(debt, { decimals: 0 })} />
       <Btn onClick={() => d({ type: 'promise' })} disabled={promiseIn > 0} tip={TIPS.promise}>
         {promiseIn > 0 ? `Prometer otra vez en ${Math.ceil(promiseIn)} s` : `Prometer “${nextPromiseText(s)}”`}
       </Btn>
-      <Row label="Dilución" value={`${fmt(s.dilution, { decimals: 0 })} %`} />
+      <Row label="Dilución" tip={HELP["Dilución"]} value={`${fmt(s.dilution, { decimals: 0 })} %`} />
       <Btn onClick={() => d({ type: 'raiseRound' })} disabled={!!roundBlock} tip={roundBlock ?? TIPS.round}>
         Levantar ronda · {money(roundAmount(s))} por {fmt(B.ROUND_DILUTION * (1 - s.dilution / 100), { decimals: 0 })} %
       </Btn>
@@ -189,14 +190,14 @@ export function DatacenterComputePanel({ s, d }: { s: GameState; d: Dispatch }) 
   const free = gpuSlots(s) - ownedGpus(s);
   return (
     <Panel title="Computación" id="compute">
-      <Row label="GPUs de datacenter" value={fmt(s.gpus.datacenter)} />
-      {s.gpus.consumer > 0 && <Row label="GPUs de consumo" value={s.gpus.consumer} />}
-      <Row label="GPUs alquiladas" value={fmt(s.gpus.rented)} />
-      {Number.isFinite(free) && <Row label="Huecos libres" value={fmt(free)} tone={free <= 0 ? 'bad' : undefined} />}
-      <Row label="Potencia" value={`${sci(totalFlops(s))} FLOP/s`} />
-      {s.t < s.timed.gpuShortageUntil && <Warn label="Escasez de GPUs" value="×1,5" />}
+      <Row label="GPUs de datacenter" tip={HELP["GPUs de datacenter"]} value={fmt(s.gpus.datacenter)} />
+      {s.gpus.consumer > 0 && <Row label="GPUs de consumo" tip={HELP["GPUs de consumo"]} value={s.gpus.consumer} />}
+      <Row label="GPUs alquiladas" tip={HELP["GPUs alquiladas"]} value={fmt(s.gpus.rented)} />
+      {Number.isFinite(free) && <Row label="Huecos libres" tip={HELP["Huecos libres"]} value={fmt(free)} tone={free <= 0 ? 'bad' : undefined} />}
+      <Row label="Potencia" tip={HELP["Potencia"]} value={`${sci(totalFlops(s))} FLOP/s`} />
+      {s.t < s.timed.gpuShortageUntil && <Warn label="Escasez de GPUs" tip={HELP["Escasez de GPUs"]} value="×1,5" />}
       <AllocControl s={s} d={d} />
-      <div className="text-xs text-muted">Comprar GPUs de datacenter</div>
+      <div className="text-xs"><Tip text={HELP_HEADINGS.buyGpus} className="text-muted">Comprar GPUs de datacenter</Tip></div>
       <div className="flex flex-wrap gap-2">
         {[1, 10, 100, 1000].map((n) => {
           const c = datacenterGpuBatchCost(s, n);
@@ -208,7 +209,7 @@ export function DatacenterComputePanel({ s, d }: { s: GameState; d: Dispatch }) 
         })}
       </div>
       <div className="text-xs text-muted">
-        Alquilar en la nube ({B.GPU.rented.rentPerSecond} €/s cada una · cupo {fmt(rentLimit(s))})
+        <Tip text={HELP_HEADINGS.rent}>Alquilar en la nube</Tip> ({B.GPU.rented.rentPerSecond} €/s cada una · cupo {fmt(rentLimit(s))})
       </div>
       <div className="flex flex-wrap gap-2">
         {[10, 100, 1000].map((n) => (
@@ -233,7 +234,7 @@ export function ApiPanel({ s, d }: { s: GameState; d: Dispatch }) {
   return (
     <Panel title="API" id="api">
       <Slider
-        label="Tu precio"
+        label="Tu precio" tip={HELP["Tu precio"]}
         value={Math.log10(s.apiPrice)}
         min={-1}
         max={2}
@@ -241,15 +242,15 @@ export function ApiPanel({ s, d }: { s: GameState; d: Dispatch }) {
         onChange={(v) => d({ type: 'setApiPrice', value: Math.round(10 ** v * 100) / 100 })}
         display={`${fmt(s.apiPrice)} € / M tokens`}
       />
-      <Row label="Precio de mercado" value={`${fmt(s.marketPrice)} € / M tokens`} />
+      <Row label="Precio de mercado" tip={HELP["Precio de mercado"]} value={`${fmt(s.marketPrice)} € / M tokens`} />
       <Row
-        label="Demanda / capacidad"
+        label="Demanda / capacidad" tip={HELP["Demanda / capacidad"]}
         value={`${fmt(s.demandTps)} / ${fmt(capacity)} tok/s`}
         tone={s.demandTps > capacity * B.LATENCY_OVERLOAD ? 'warn' : undefined}
       />
-      <Row label="Margen" value={`${margin >= 0 ? '+' : ''}${fmt(margin)} €/s`} tone={margin >= 0 ? 'good' : 'bad'} />
-      <Row label="Modelo servido" value={m ? `${m.name} · cap. ${fmt(activeCapability(s), { decimals: 0 })}` : '—'} />
-      <div className="text-xs text-muted">Optimizaciones (eficiencia ×{fmt(inferenceEfficiency(s))})</div>
+      <Row label="Margen" tip={HELP["Margen"]} value={`${margin >= 0 ? '+' : ''}${fmt(margin)} €/s`} tone={margin >= 0 ? 'good' : 'bad'} />
+      <Row label="Modelo servido" tip={HELP["Modelo servido"]} value={m ? `${m.name} · cap. ${fmt(activeCapability(s), { decimals: 0 })}` : '—'} />
+      <div className="text-xs"><Tip text={HELP_HEADINGS.optimizations} className="text-muted">Optimizaciones (eficiencia ×{fmt(inferenceEfficiency(s))})</Tip></div>
       <div className="flex flex-wrap gap-1.5 text-xs">
         {(['quantization', 'distillation', 'contextCache'] as const).map((id) => {
           const label = { quantization: 'Cuantización ×1,8', distillation: 'Destilación ×2', contextCache: 'Caché ×1,3' }[id];
@@ -283,16 +284,16 @@ export function BoardPanel({ s }: { s: GameState }) {
   const lb = leaderboard(s);
   return (
     <Panel title="Junta" aside={`próxima en ${clock(left)}`} id="board">
-      <Row label="ARR objetivo" value={`${money(a)} / ${money(arrTarget)}`} />
+      <Row label="ARR objetivo" tip={HELP["ARR objetivo"]} value={`${money(a)} / ${money(arrTarget)}`} />
       <Bar value={a / arrTarget} color={arrOk ? '#5fd3bc' : '#ff8a8a'} />
-      <Row label="Capacidad objetivo" value={`${fmt(cap, { decimals: 0 })} / ${fmt(capTarget, { decimals: 0 })}`} />
+      <Row label="Capacidad objetivo" tip={HELP["Capacidad objetivo"]} value={`${fmt(cap, { decimals: 0 })} / ${fmt(capTarget, { decimals: 0 })}`} />
       <Bar value={capTarget > 0 ? cap / capTarget : 1} color={capOk ? '#5fd3bc' : '#ffc35c'} />
       <Small>
         {arrOk && capOk
           ? 'Vas camino de cumplir. La junta prepara un "buen trabajo, equipo" de compromiso.'
           : 'Vas camino de incumplir. La junta ya está redactando un correo con muchos “alineemos expectativas”.'}
       </Small>
-      <div className="text-xs text-muted">Ranking</div>
+      <div className="text-xs"><Tip text={HELP_HEADINGS.ranking} className="text-muted">Ranking</Tip></div>
       <ol className="list-none m-0 p-0 flex flex-col gap-0.5 text-[13px]">
         {lb.map((r, i) => (
           <li key={r.name} className={`flex justify-between ${r.you ? 'text-amber' : ''}`}>
@@ -311,12 +312,12 @@ export function TalentPanel({ s, d }: { s: GameState; d: Dispatch }) {
   const cost = seniorCost(s);
   return (
     <Panel title="Talento" id="talent">
-      <Row label="Investigadores" value={`${s.researchers} + ${s.seniorResearchers} sénior`} />
+      <Row label="Investigadores" tip={HELP["Investigadores"]} value={`${s.researchers} + ${s.seniorResearchers} sénior`} />
       <Btn onClick={() => d({ type: 'hireSenior' })} disabled={s.money < cost} tip={TIPS.senior}>
         Fichar sénior · {money(cost)}
       </Btn>
       <Slider
-        label="Equity repartida (del pool del 10 %)"
+        label="Equity repartida (del pool del 10 %)" tip={HELP["Equity repartida (del pool del 10 %)"]}
         value={s.equityPool}
         min={0}
         max={1}
@@ -324,7 +325,7 @@ export function TalentPanel({ s, d }: { s: GameState; d: Dispatch }) {
         onChange={(v) => d({ type: 'setEquity', value: v })}
         display={pct(s.equityPool)}
       />
-      <Warn label="P(fuga) este trimestre" value={pct(poachProbability(s))} />
+      <Warn label="P(fuga) este trimestre" tip={HELP["P(fuga) este trimestre"]} value={pct(poachProbability(s))} />
       {s.board.salaryMult < 1 && <Small>Sueldos recortados al {pct(s.board.salaryMult)}.</Small>}
     </Panel>
   );
@@ -340,8 +341,8 @@ export function ContractsPanel({ s, d }: { s: GameState; d: Dispatch }) {
           <div>
             {c.client} {c.text}
           </div>
-          <Row label="Pide" value={`cap. ≥ ${c.minCapability} · ${fmt(c.tokensPerSecond)} tok/s`} tone={cap < c.minCapability ? 'bad' : undefined} />
-          <Row label="Paga" value={`+${fmt(c.revenuePerSecond)} €/s`} tone="good" />
+          <Row label="Pide" tip={HELP["Pide"]} value={`cap. ≥ ${c.minCapability} · ${fmt(c.tokensPerSecond)} tok/s`} tone={cap < c.minCapability ? 'bad' : undefined} />
+          <Row label="Paga" tip={HELP["Paga"]} value={`+${fmt(c.revenuePerSecond)} €/s`} tone="good" />
           {c.accepted ? (
             <Small tone={c.breached > 0 ? 'bad' : 'muted'}>
               Activo · quedan {c.remaining} trimestres{c.breached > 0 ? ` · penalizaciones ${money(c.breached)}` : ''}
@@ -379,8 +380,8 @@ export function BoardModal({ s, d }: { s: GameState; d: Dispatch }) {
   return (
     <ModalFrame title={`Junta trimestral · T${m.quarter}`}>
       <div className="flex flex-col gap-1">
-        <Row label="ARR" value={`${money(m.arr)} / ${money(m.arrTarget)}`} tone={m.arr >= m.arrTarget ? 'good' : 'bad'} />
-        <Row label="Capacidad" value={`${fmt(m.cap, { decimals: 0 })} / ${fmt(m.capTarget, { decimals: 0 })}`} tone={m.cap >= m.capTarget ? 'good' : 'bad'} />
+        <Row label="ARR" tip={HELP["ARR"]} value={`${money(m.arr)} / ${money(m.arrTarget)}`} tone={m.arr >= m.arrTarget ? 'good' : 'bad'} />
+        <Row label="Capacidad" tip={HELP["Capacidad"]} value={`${fmt(m.cap, { decimals: 0 })} / ${fmt(m.capTarget, { decimals: 0 })}`} tone={m.cap >= m.capTarget ? 'good' : 'bad'} />
       </div>
       <p className="m-0">{m.text}</p>
       {m.met ? (

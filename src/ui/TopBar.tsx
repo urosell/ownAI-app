@@ -2,11 +2,17 @@ import { money, perSecond, fmt } from '../engine/format';
 import { arr } from '../engine/formulas';
 import type { GameState } from '../engine/state';
 import { PHASE_NAMES } from '../content/text';
+import { HELP } from '../content/help';
+import { Tip } from './kit';
 
 function Stat({ label, children, tone }: { label: string; children: React.ReactNode; tone?: string }) {
   return (
     <div className="flex flex-col min-w-0">
-      <span className="text-xs text-muted">{label}</span>
+      <span className="text-xs">
+        <Tip text={HELP[`bar:${label}`] ?? HELP[label]} className="text-muted" below>
+          {label}
+        </Tip>
+      </span>
       <span className={`text-lg sm:text-xl font-medium tabular-nums ${tone ?? ''}`}>{children}</span>
     </div>
   );
@@ -31,7 +37,7 @@ export function TopBar({ s }: { s: GameState }) {
         {s.phase >= 2 && <Stat label="Valoración">{money(s.valuation)}</Stat>}
         {(s.phase >= 1 || s.hype > 0) && <Stat label="Hype">{fmt(s.hype, { decimals: 0 })}</Stat>}
         <div className="flex flex-col">
-          <span className="text-xs text-muted">Fase</span>
+          <span className="text-xs"><Tip text={HELP.Fase} className="text-muted" below>Fase</Tip></span>
           <span className="font-pixel text-lg text-amber">
             {s.phase} · {PHASE_NAMES[s.phase]}
           </span>

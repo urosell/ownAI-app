@@ -1,5 +1,5 @@
 // Piezas visuales básicas. Sin lógica de juego: solo pintan datos y lanzan callbacks.
-import { useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
 export function Panel({
   title,
@@ -66,11 +66,22 @@ function useTip() {
   return { show, handlers };
 }
 
-function TipBubble({ text }: { text: string }) {
+function TipBubble({ text, below = false }: { text: string; below?: boolean }) {
+  // Si el recuadro se sale por la derecha de la pantalla, se desplaza a la izquierda.
+  const ref = useRef<HTMLSpanElement>(null);
+  const [shift, setShift] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const overflow = el.getBoundingClientRect().right - (window.innerWidth - 8);
+    if (overflow > 0) setShift(-overflow);
+  }, []);
   return (
     <span
+      ref={ref}
+      style={shift ? { transform: `translateX(${shift}px)` } : undefined}
       role="tooltip"
-      className="absolute z-30 left-0 bottom-full mb-1.5 w-72 max-w-[80vw] bg-void border border-line-2 px-2.5 py-1.5 text-xs text-ink font-mono font-normal normal-case pointer-events-none shadow-[3px_3px_0_#000] text-left leading-snug"
+      className={`absolute z-30 left-0 ${below ? 'top-full mt-1.5' : 'bottom-full mb-1.5'} w-72 max-w-[80vw] bg-void border border-line-2 px-2.5 py-1.5 text-xs text-ink font-mono font-normal normal-case pointer-events-none shadow-[3px_3px_0_#000] text-left leading-snug`}
     >
       {text}
     </span>
@@ -78,13 +89,13 @@ function TipBubble({ text }: { text: string }) {
 }
 
 /** Texto con explicación al pasar el ratón. Subrayado punteado para que se note que hay ayuda. */
-export function Tip({ text, children, className = '' }: { text?: string; children: ReactNode; className?: string }) {
+export function Tip({ text, children, className = '', below = false }: { text?: string; children: ReactNode; className?: string; below?: boolean }) {
   const { show, handlers } = useTip();
   if (!text) return <span className={className}>{children}</span>;
   return (
     <span className={`relative inline-block cursor-help underline decoration-dotted decoration-line-2 underline-offset-2 ${className}`} tabIndex={0} {...handlers}>
       {children}
-      {show && <TipBubble text={text} />}
+      {show && <TipBubble text={text} below={below} />}
     </span>
   );
 }

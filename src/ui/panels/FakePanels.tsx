@@ -11,20 +11,7 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
   const head = s.queue[0];
   return (
     <Panel title="Bandeja de prompts" aside={`${s.queue.length}/${B.QUEUE_MAX} en cola`} grow={2} basis={420} collapsible={s.phase > 0} id="fake">
-      <div className="flex flex-col gap-1.5" aria-label="Cola de prompts">
-        {s.queue.length === 0 && <Small>No hay prompts. Disfruta del silencio.</Small>}
-        {s.queue.slice(0, 5).map((p) => (
-          <div key={p.id} className="flex items-center gap-2 text-[13px]">
-            <span className="truncate flex-1">“{PROMPT_SAMPLES[p.id % PROMPT_SAMPLES.length]}”</span>
-            <span className={`tabular-nums text-xs ${p.ttl < 6 ? 'text-bad' : 'text-muted'}`}>{Math.ceil(p.ttl)} s</span>
-          </div>
-        ))}
-        {s.queue.length > 5 && <Small>… y {s.queue.length - 5} más</Small>}
-      </div>
-      {head && <Bar value={head.ttl / B.PROMPT_TTL} color={head.ttl < 6 ? '#ff8a8a' : '#5fd3bc'} height={6} />}
-      <Row label="Llegan" value={`${fmt(promptRate(s))} prompts/s`} />
-      <Row label="Reputación" value={fmt(s.reputation, { decimals: 0 })} />
-      <Row label="Calidad de respuesta" value={fmt(promptQuality(s))} />
+      {/* Botones arriba: la cola de abajo cambia de tamaño y no debe moverlos. */}
       <Btn primary onClick={() => d({ type: 'answerPrompt' })} disabled={s.queue.length === 0} tip={TIPS.answer}>
         Responder prompt · +{money(B.PROMPT_REWARD * promptQuality(s))}
       </Btn>
@@ -35,6 +22,21 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
       ) : (
         <Small tone="good">Marketing al máximo: ya no queda canal en el que no salgas.</Small>
       )}
+      <Row label="Llegan" value={`${fmt(promptRate(s))} prompts/s`} />
+      <Row label="Reputación" value={fmt(s.reputation, { decimals: 0 })} />
+      <Row label="Calidad de respuesta" value={fmt(promptQuality(s))} />
+      <Bar value={head ? head.ttl / B.PROMPT_TTL : 0} color={head && head.ttl < 6 ? '#ff8a8a' : '#5fd3bc'} height={6} />
+      {/* Altura fija (5 prompts + "y N más") para que el panel no cambie de tamaño. */}
+      <div className="flex flex-col gap-1.5 h-[150px] overflow-hidden" aria-label="Cola de prompts">
+        {s.queue.length === 0 && <Small>No hay prompts. Disfruta del silencio.</Small>}
+        {s.queue.slice(0, 5).map((p) => (
+          <div key={p.id} className="flex items-center gap-2 text-[13px]">
+            <span className="truncate flex-1">“{PROMPT_SAMPLES[p.id % PROMPT_SAMPLES.length]}”</span>
+            <span className={`tabular-nums text-xs ${p.ttl < 6 ? 'text-bad' : 'text-muted'}`}>{Math.ceil(p.ttl)} s</span>
+          </div>
+        ))}
+        {s.queue.length > 5 && <Small>… y {s.queue.length - 5} más</Small>}
+      </div>
     </Panel>
   );
 }

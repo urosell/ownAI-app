@@ -19,13 +19,14 @@ import {
 import type { GameState, NicheId } from '../../engine/state';
 import { NICHES, TIPS } from '../../content/text';
 import { Bar, Btn, Panel, Row, Slider, Small, SplitBar, Toggle, Warn } from '../kit';
+import { HELP, HELP_TOGGLES } from '../../content/help';
 import type { Dispatch } from '../types';
 
 export function AllocControl({ s, d }: { s: GameState; d: Dispatch }) {
   return (
     <>
       <Slider
-        label="Reparto entrenamiento / inferencia"
+        label="Reparto entrenamiento / inferencia" tip={HELP["Reparto entrenamiento / inferencia"]}
         value={s.gpuAlloc}
         min={0}
         max={1}
@@ -51,10 +52,10 @@ export function ComputePanel({ s, d }: { s: GameState; d: Dispatch }) {
   const cost = consumerGpuCost(s);
   return (
     <Panel title="Computación" collapsible={s.phase > 1} id="compute">
-      <Row label="GPUs de consumo" value={s.gpus.consumer} />
-      <Row label="GPUs alquiladas" value={s.gpus.rented} />
-      <Row label="Potencia" value={`${sci(totalFlops(s))} FLOP/s`} />
-      {s.t < s.timed.gpuShortageUntil && <Warn label="Escasez de GPUs" value="×1,5" />}
+      <Row label="GPUs de consumo" tip={HELP["GPUs de consumo"]} value={s.gpus.consumer} />
+      <Row label="GPUs alquiladas" tip={HELP["GPUs alquiladas"]} value={s.gpus.rented} />
+      <Row label="Potencia" tip={HELP["Potencia"]} value={`${sci(totalFlops(s))} FLOP/s`} />
+      {s.t < s.timed.gpuShortageUntil && <Warn label="Escasez de GPUs" tip={HELP["Escasez de GPUs"]} value="×1,5" />}
       <AllocControl s={s} d={d} />
       <Btn onClick={() => d({ type: 'buyConsumerGpu' })} disabled={s.money < cost} tip={TIPS.consumerGpu}>
         Comprar GPU de 2ª mano · {money(cost)}
@@ -77,7 +78,7 @@ export function DataPanel({ s, d }: { s: GameState; d: Dispatch }) {
   const licensedCost = s.phase >= 2 ? B.LICENSE_DEAL_P2.cost : B.LICENSED_COST;
   return (
     <Panel title="Datos" id="data">
-      <Row label="Tokens disponibles" value={fmt(totalTokens(s))} />
+      <Row label="Tokens disponibles" tip={HELP["Tokens disponibles"]} value={fmt(totalTokens(s))} />
       <SplitBar
         parts={[
           { value: p.clean, color: '#5fd3bc' },
@@ -92,13 +93,13 @@ export function DataPanel({ s, d }: { s: GameState; d: Dispatch }) {
         <span>{pct(p.licensed / t)} licencia</span>
         {p.synthetic > 0 && <span>{pct(p.synthetic / t)} sintéticos</span>}
       </div>
-      <Row label="Calidad media" value={fmt(dataQuality(s))} />
-      <Warn label="Riesgo de demanda" value={`${fmt(s.lawsuitRisk, { decimals: 1 })} %`} />
-      <Toggle checked={s.scraping} onChange={(on) => d({ type: 'setScraping', on })}>
+      <Row label="Calidad media" tip={HELP["Calidad media"]} value={fmt(dataQuality(s))} />
+      <Warn label="Riesgo de demanda" tip={HELP["Riesgo de demanda"]} value={`${fmt(s.lawsuitRisk, { decimals: 1 })} %`} />
+      <Toggle checked={s.scraping} onChange={(on) => d({ type: 'setScraping', on })} tip={HELP_TOGGLES.scraping}>
         Scraping activado · +{fmt(scrapeRate(s))} tokens/s
       </Toggle>
       {s.upgrades.synthetic && (
-        <Toggle checked={s.syntheticOn} onChange={(on) => d({ type: 'setSynthetic', on })}>
+        <Toggle checked={s.syntheticOn} onChange={(on) => d({ type: 'setSynthetic', on })} tip={HELP_TOGGLES.synthetic}>
           Datos sintéticos · +{fmt(B.SYNTHETIC_RATE)} tokens/s (cuidado con el 40 %)
         </Toggle>
       )}
@@ -138,15 +139,15 @@ export function ProductPanel({ s, d }: { s: GameState; d: Dispatch }) {
           <Bar value={s.users / B.SERIES_A_USERS} color="#F5A623" />
         </>
       )}
-      {s.phase > 1 && <Row label="Usuarios" value={fmt(s.users, { decimals: 0 })} />}
-      <Row label="Objetivo de usuarios" value={fmt(target, { decimals: 0 })} />
-      {s.phase === 1 && s.activeModelId && <Row label="Pueden servirse" value={fmt(capUsers, { decimals: 0 })} tone={capUsers < target + 1 ? 'warn' : undefined} />}
-      <Row label="Ingresos" value={`+${fmt(s.users * B.WRAPPER_REVENUE_PER_USER)} €/s`} tone="good" />
-      <Row label="Coste de inferencia" value={`−${fmt(s.users * B.WRAPPER_COST_PER_USER)} €/s`} tone="bad" />
-      <Row label="Benchmark propio" value={s.activeModelId ? fmt(benchmarkShown(s), { decimals: 0 }) : '—'} tone={s.benchContaminated ? 'warn' : undefined} />
+      {s.phase > 1 && <Row label="Usuarios" tip={HELP["Usuarios"]} value={fmt(s.users, { decimals: 0 })} />}
+      <Row label="Objetivo de usuarios" tip={HELP["Objetivo de usuarios"]} value={fmt(target, { decimals: 0 })} />
+      {s.phase === 1 && s.activeModelId && <Row label="Pueden servirse" tip={HELP["Pueden servirse"]} value={fmt(capUsers, { decimals: 0 })} tone={capUsers < target + 1 ? 'warn' : undefined} />}
+      <Row label="Ingresos" tip={HELP["Ingresos"]} value={`+${fmt(s.users * B.WRAPPER_REVENUE_PER_USER)} €/s`} tone="good" />
+      <Row label="Coste de inferencia" tip={HELP["Coste de inferencia"]} value={`−${fmt(s.users * B.WRAPPER_COST_PER_USER)} €/s`} tone="bad" />
+      <Row label="Benchmark propio" tip={HELP["Benchmark propio"]} value={s.activeModelId ? fmt(benchmarkShown(s), { decimals: 0 }) : '—'} tone={s.benchContaminated ? 'warn' : undefined} />
       {!s.activeModelId && <Small tone="warn">Sin modelo no hay producto. Entrena un fine-tune.</Small>}
       {s.benchContaminated && <Small>Real: {fmt(activeCapability(s), { decimals: 0 })}. Shhh.</Small>}
-      <Toggle checked={s.benchContaminated} onChange={(on) => d({ type: 'setContaminate', on })}>
+      <Toggle checked={s.benchContaminated} onChange={(on) => d({ type: 'setContaminate', on })} tip={HELP_TOGGLES.contaminate}>
         Contaminar benchmark (+10, nadie se dará cuenta)
       </Toggle>
     </Panel>
@@ -159,9 +160,9 @@ export function ResearchPanel({ s, d, upgrades = PHASE1_UPGRADES, children }: { 
   const cost = researcherCost(s);
   return (
     <Panel title="Investigación" aside={`${fmt(ideasPerSecond(s))} ideas/s`} id="research">
-      <Row label="Investigadores" value={s.researchers} />
-      {s.seniorResearchers > 0 && <Row label="Sénior" value={s.seniorResearchers} />}
-      <Row label="Ideas" value={fmt(Math.floor(s.ideas))} tone="accent" />
+      <Row label="Investigadores" tip={HELP["Investigadores"]} value={s.researchers} />
+      {s.seniorResearchers > 0 && <Row label="Sénior" tip={HELP["Sénior"]} value={s.seniorResearchers} />}
+      <Row label="Ideas" tip={HELP["Ideas"]} value={fmt(Math.floor(s.ideas))} tone="accent" />
       <Btn onClick={() => d({ type: 'hireResearcher' })} disabled={s.money < cost} tip={TIPS.researcher}>
         Contratar investigador · {money(cost)}
       </Btn>

@@ -7,13 +7,18 @@ import type { FtSize, GameState, TrainingRun } from '../../engine/state';
 import { failureText } from '../../content/failures';
 import { TIPS } from '../../content/text';
 import { LossChart } from '../LossChart';
-import { Bar, Big, Btn, Panel, Row, Slider, Small } from '../kit';
+import { Bar, Big, Btn, Panel, Row, Slider, Small, Tip } from '../kit';
+import { HELP, HELP_P } from '../../content/help';
 import type { Dispatch } from '../types';
 
 export function PBreakdown({ plan }: { plan: RunPlan }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="text-xs text-muted">Probabilidad de éxito</div>
+      <div className="text-xs">
+        <Tip text={HELP_P} className="text-muted">
+          Probabilidad de éxito
+        </Tip>
+      </div>
       <Big>{pct(plan.p.p)}</Big>
       <div className="flex flex-col gap-0.5 text-xs">
         {plan.p.terms.map((t) => (
@@ -45,11 +50,15 @@ export function RunView({ s, run, d }: { s: GameState; run: TrainingRun; d: Disp
         <Bar value={run.progress} color={failed ? '#ff8a8a' : '#5fd3bc'} />
       </div>
       <div className="flex flex-col gap-1.5" style={{ flex: '2 1 200px' }}>
-        <div className="text-xs text-muted">Probabilidad de éxito</div>
+        <div className="text-xs">
+        <Tip text={HELP_P} className="text-muted">
+          Probabilidad de éxito
+        </Tip>
+      </div>
         <Big>{pct(run.pSuccess)}</Big>
-        <Row label="Modelo" value={run.modelName} />
-        <Row label="Capacidad esperada" value={fmt(run.targetCapability, { decimals: 0 })} />
-        <Row label="Gastado" value={money(run.spent)} />
+        <Row label="Modelo" tip={HELP["Modelo"]} value={run.modelName} />
+        <Row label="Capacidad esperada" tip={HELP["Capacidad esperada"]} value={fmt(run.targetCapability, { decimals: 0 })} />
+        <Row label="Gastado" tip={HELP["Gastado"]} value={money(run.spent)} />
         {failed && (
           <>
             <Small tone="bad">{failureText(run.failureId)}</Small>
@@ -106,7 +115,7 @@ export function TrainingPanel({ s, d }: { s: GameState; d: Dispatch }) {
               Capacidad base {m.baseCap} · necesita {m.minGpus} GPU{m.minGpus > 1 ? 's' : ''}
             </Small>
             <Slider
-              label="Tokens"
+              label="Tokens" tip={HELP["Tokens"]}
               value={frac}
               min={0}
               max={1}
@@ -115,7 +124,7 @@ export function TrainingPanel({ s, d }: { s: GameState; d: Dispatch }) {
               display={`${fmt(tokens)} de ${fmt(avail)}`}
             />
             <Slider
-              label="Épocas"
+              label="Épocas" tip={HELP["Épocas"]}
               value={epochs}
               min={1}
               max={5}
@@ -123,9 +132,9 @@ export function TrainingPanel({ s, d }: { s: GameState; d: Dispatch }) {
               onChange={setEpochs}
               display={`${epochs}${epochs > 3 ? ' · sobreajuste' : ''}`}
             />
-            <Row label="Computación C = 6·N·D" value={`${sci(plan.C)} FLOPs`} />
-            <Row label="Capacidad esperada" value={fmt(plan.capability, { decimals: 0 })} />
-            <Row label="Duración estimada" value={Number.isFinite(trainingDuration(s, plan.C)) ? `${Math.ceil(trainingDuration(s, plan.C * (1 + ablation)))} s` : '—'} />
+            <Row label="Computación C = 6·N·D" tip={HELP["Computación C = 6·N·D"]} value={`${sci(plan.C)} FLOPs`} />
+            <Row label="Capacidad esperada" tip={HELP["Capacidad esperada"]} value={fmt(plan.capability, { decimals: 0 })} />
+            <Row label="Duración estimada" tip={HELP["Duración estimada"]} value={Number.isFinite(trainingDuration(s, plan.C)) ? `${Math.ceil(trainingDuration(s, plan.C * (1 + ablation)))} s` : '—'} />
           </div>
           <div style={{ flex: '2 1 200px' }}>
             <PBreakdown plan={planFinetune(s, { ...params, ablation: hasTeam ? ablation : 0 })} />

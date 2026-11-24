@@ -13,7 +13,8 @@ import {
 } from '../../engine/formulas';
 import type { GameState } from '../../engine/state';
 import { MARKETING_CAMPAIGNS, PROMPT_SAMPLES, TIPS } from '../../content/text';
-import { Bar, Btn, Panel, Row, Small, Warn } from '../kit';
+import { Bar, Btn, Panel, Row, Small, Tip, Warn } from '../kit';
+import { HELP } from '../../content/help';
 import type { Dispatch } from '../types';
 
 export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
@@ -32,7 +33,12 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
         <Small tone="good">Marketing al máximo: ya no queda canal en el que no salgas.</Small>
       )}
       <div className="flex items-center justify-between gap-2 text-[13px]">
-        <span className="text-muted">Precio por prompt</span>
+        <Tip
+          className="text-muted"
+          text="Lo que cobras por cada prompt respondido. Más caro: ganas más por prompt, pero llegan menos y ganas menos reputación (por encima de 2 € la pierdes). Más barato: al revés."
+        >
+          Precio por prompt
+        </Tip>
         <span className="flex items-center gap-2">
           <Btn
             small
@@ -53,14 +59,14 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
           </Btn>
         </span>
       </div>
-      <Row label="Llegan" value={`${fmt(promptRate(s))} prompts/s (${pct(promptPriceDemand(s) - 1, true)} por precio)`} />
+      <Row label="Llegan" tip={HELP["Llegan"]} value={`${fmt(promptRate(s))} prompts/s (${pct(promptPriceDemand(s) - 1, true)} por precio)`} />
       <Row
-        label="Reputación por prompt"
+        label="Reputación por prompt" tip={HELP["Reputación por prompt"]}
         value={`${promptRepPerAnswer(s) >= 0 ? '+' : ''}${fmt(promptRepPerAnswer(s), { decimals: 2 })}`}
         tone={promptRepPerAnswer(s) > 0 ? 'good' : promptRepPerAnswer(s) < 0 ? 'bad' : undefined}
       />
-      <Row label="Reputación" value={fmt(s.reputation, { decimals: 0 })} />
-      <Row label="Calidad de respuesta" value={fmt(promptQuality(s))} />
+      <Row label="Reputación" tip={HELP["Reputación"]} value={fmt(s.reputation, { decimals: 0 })} />
+      <Row label="Calidad de respuesta" tip={HELP["Calidad de respuesta"]} value={fmt(promptQuality(s))} />
       <Bar value={head ? head.ttl / B.PROMPT_TTL : 0} color={head && head.ttl < 6 ? '#ff8a8a' : '#5fd3bc'} height={6} />
       {/* Altura fija (5 prompts + "y N más") para que el panel no cambie de tamaño. */}
       <div className="flex flex-col gap-1.5 h-[150px] overflow-hidden" aria-label="Cola de prompts">
@@ -86,14 +92,14 @@ export function TeamPanel({ s, d }: { s: GameState; d: Dispatch }) {
   const idle = s.annotators > 0 ? Math.max(0, Math.floor((capacity - arrival) / perAnnotator)) : 0;
   return (
     <Panel title="Anotadores" aside="la IA es gente" collapsible={s.phase > 0}>
-      <Row label="Anotadores" value={s.annotators} />
-      <Row label="Pueden responder" value={`${fmt(capacity)} prompts/s`} />
-      <Row label="Llegan" value={`${fmt(arrival)} prompts/s${s.reputation >= 100 && s.marketing < B.MARKETING_MAX ? ' (máx. por reputación: prueba marketing)' : ''}`} />
-      <Row label="Sueldos" value={`−${fmt(s.annotators * B.ANNOTATOR_SALARY)} €/s`} tone="bad" />
+      <Row label="Anotadores" tip={HELP["Anotadores"]} value={s.annotators} />
+      <Row label="Pueden responder" tip={HELP["Pueden responder"]} value={`${fmt(capacity)} prompts/s`} />
+      <Row label="Llegan" tip={HELP["Llegan"]} value={`${fmt(arrival)} prompts/s${s.reputation >= 100 && s.marketing < B.MARKETING_MAX ? ' (máx. por reputación: prueba marketing)' : ''}`} />
+      <Row label="Sueldos" tip={HELP["Sueldos"]} value={`−${fmt(s.annotators * B.ANNOTATOR_SALARY)} €/s`} tone="bad" />
       {idle > 0 && (
         <Warn label={`${idle} anotador${idle > 1 ? 'es' : ''} de sobra: cobran por esperar`} />
       )}
-      {s.phase >= 1 && <Row label="Datos limpios generados" value={`${fmt(s.data.clean)} tokens`} tone="good" />}
+      {s.phase >= 1 && <Row label="Datos limpios generados" tip={HELP["Datos limpios generados"]} value={`${fmt(s.data.clean)} tokens`} tone="good" />}
       <Btn onClick={() => d({ type: 'hireAnnotator' })} disabled={s.money < cost} tip={TIPS.annotator}>
         Contratar anotador · {money(cost)}
       </Btn>
@@ -126,7 +132,7 @@ export function InvestorsPanel({ s, d }: { s: GameState; d: Dispatch }) {
         </>
       ) : (
         <>
-          <Warn label="Riesgo de auditoría (cada 60 s)" value={pct(s.auditRisk)} />
+          <Warn label="Riesgo de auditoría (cada 60 s)" tip={HELP["Riesgo de auditoría (cada 60 s)"]} value={pct(s.auditRisk)} />
           <Small>Cuantos más anotadores, más fácil que alguien se dé cuenta de que la IA come bocadillos.</Small>
         </>
       )}

@@ -46,10 +46,55 @@ export function Panel({
   );
 }
 
-export function Row({ label, value, tone }: { label: ReactNode; value: ReactNode; tone?: Tone }) {
+/** Estado de un tooltip: ratón, foco o pulsación larga en móvil. */
+function useTip() {
+  const [show, setShow] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+  const handlers = {
+    onMouseEnter: () => setShow(true),
+    onMouseLeave: () => setShow(false),
+    onFocus: () => setShow(true),
+    onBlur: () => setShow(false),
+    onTouchStart: () => {
+      timer.current = window.setTimeout(() => setShow(true), 450);
+    },
+    onTouchEnd: () => {
+      window.clearTimeout(timer.current);
+      window.setTimeout(() => setShow(false), 2500);
+    },
+  };
+  return { show, handlers };
+}
+
+function TipBubble({ text }: { text: string }) {
+  return (
+    <span
+      role="tooltip"
+      className="absolute z-30 left-0 bottom-full mb-1.5 w-72 max-w-[80vw] bg-void border border-line-2 px-2.5 py-1.5 text-xs text-ink font-mono font-normal normal-case pointer-events-none shadow-[3px_3px_0_#000] text-left leading-snug"
+    >
+      {text}
+    </span>
+  );
+}
+
+/** Texto con explicación al pasar el ratón. Subrayado punteado para que se note que hay ayuda. */
+export function Tip({ text, children, className = '' }: { text?: string; children: ReactNode; className?: string }) {
+  const { show, handlers } = useTip();
+  if (!text) return <span className={className}>{children}</span>;
+  return (
+    <span className={`relative inline-block cursor-help underline decoration-dotted decoration-line-2 underline-offset-2 ${className}`} tabIndex={0} {...handlers}>
+      {children}
+      {show && <TipBubble text={text} />}
+    </span>
+  );
+}
+
+export function Row({ label, value, tone, tip }: { label: ReactNode; value: ReactNode; tone?: Tone; tip?: string }) {
   return (
     <div className="flex justify-between gap-3 text-[13px]">
-      <span className="text-muted">{label}</span>
+      <Tip text={tip} className="text-muted">
+        {label}
+      </Tip>
       <span className={toneClass(tone)}>{value}</span>
     </div>
   );
@@ -94,10 +139,12 @@ export function SplitBar({ parts, height = 14 }: { parts: { value: number; color
   );
 }
 
-export function Warn({ label, value }: { label: ReactNode; value?: ReactNode }) {
+export function Warn({ label, value, tip }: { label: ReactNode; value?: ReactNode; tip?: string }) {
   return (
     <div className="flex justify-between gap-2 bg-warn-bg border border-warn-line px-2 py-1.5 text-[13px]">
-      <span className="text-amber-hi">{label}</span>
+      <Tip text={tip} className="text-amber-hi">
+        {label}
+      </Tip>
       {value !== undefined && <span className="text-amber-hi font-medium">{value}</span>}
     </div>
   );
@@ -121,8 +168,7 @@ export function Btn({
   small?: boolean;
   className?: string;
 }) {
-  const [showTip, setShowTip] = useState(false);
-  const timer = useRef<number | undefined>(undefined);
+  const { show: showTip, handlers } = useTip();
   const base = primary
     ? 'font-pixel text-sm px-4 bg-amber text-[#1a1306] border-2 border-[#1a1306] shadow-[3px_3px_0_#000] enabled:active:translate-x-[2px] enabled:active:translate-y-[2px] enabled:active:shadow-[1px_1px_0_#000]'
     : 'font-mono text-[13px] px-3.5 bg-transparent text-ink border-2 border-line-2 enabled:hover:border-amber';
@@ -133,28 +179,11 @@ export function Btn({
         className={`${base} ${small ? 'min-h-9' : 'min-h-11'} w-full cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed`}
         onClick={onClick}
         disabled={disabled}
-        onMouseEnter={() => setShowTip(true)}
-        onMouseLeave={() => setShowTip(false)}
-        onFocus={() => setShowTip(true)}
-        onBlur={() => setShowTip(false)}
-        onTouchStart={() => {
-          timer.current = window.setTimeout(() => setShowTip(true), 450);
-        }}
-        onTouchEnd={() => {
-          window.clearTimeout(timer.current);
-          window.setTimeout(() => setShowTip(false), 1800);
-        }}
+        {...handlers}
       >
         {children}
       </button>
-      {tip && showTip && (
-        <span
-          role="tooltip"
-          className="absolute z-30 left-0 bottom-full mb-1.5 w-64 max-w-[80vw] bg-void border border-line-2 px-2.5 py-1.5 text-xs text-ink pointer-events-none shadow-[3px_3px_0_#000]"
-        >
-          {tip}
-        </span>
-      )}
+      {tip && showTip && <TipBubble text={tip} />}
     </span>
   );
 }
@@ -164,14 +193,18 @@ export function Toggle({
   onChange,
   children,
   disabled,
+  tip,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   children: ReactNode;
   disabled?: boolean;
+  tip?: string;
 }) {
+  const { show, handlers } = useTip();
   return (
-    <label className={`flex items-center gap-2 min-h-11 text-[13px] ${disabled ? 'opacity-40' : 'cursor-pointer'}`}>
+    <label className={`relative flex items-center gap-2 min-h-11 text-[13px] ${disabled ? 'opacity-40' : 'cursor-pointer'}`} {...(tip ? handlers : {})}>
+      {tip && show && <TipBubble text={tip} />}
       <input
         type="checkbox"
         checked={checked}
@@ -192,6 +225,7 @@ export function Slider({
   step,
   onChange,
   display,
+  tip,
 }: {
   label: ReactNode;
   value: number;
@@ -200,11 +234,14 @@ export function Slider({
   step: number;
   onChange: (v: number) => void;
   display: ReactNode;
+  tip?: string;
 }) {
   return (
     <label className="flex flex-col gap-1 text-[13px]">
       <span className="flex justify-between">
-        <span className="text-muted">{label}</span>
+        <Tip text={tip} className="text-muted">
+          {label}
+        </Tip>
         <span>{display}</span>
       </span>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />

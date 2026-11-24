@@ -101,6 +101,14 @@ describe('fase 0', () => {
     expect(s.annotators).toBeLessThan(10);
   });
 
+  it('se puede despedir anotadores', () => {
+    let s = { ...initialState(1), annotators: 2 };
+    s = apply(s, { type: 'fireAnnotator' });
+    expect(s.annotators).toBe(1);
+    s = apply(apply(s, { type: 'fireAnnotator' }), { type: 'fireAnnotator' });
+    expect(s.annotators).toBe(0);
+  });
+
   it('comprar la primera GPU pasa a la Fase 1', () => {
     let s = { ...initialState(1), money: 2000 };
     s = apply(s, { type: 'buyFirstGpu' });

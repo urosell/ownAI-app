@@ -49,6 +49,7 @@ export type Action =
   // fase 0
   | { type: 'answerPrompt' }
   | { type: 'hireAnnotator' }
+  | { type: 'fireAnnotator' }
   | { type: 'buyTemplates' }
   | { type: 'pitchAngels' }
   | { type: 'buyFirstGpu' }
@@ -127,6 +128,11 @@ registerActions({
       s.annotators += 1;
       if (s.annotators === 1) addLog(s, 'info', 'Primer anotador contratado. A partir de ahora, la "IA" tiene DNI.');
     }
+  },
+  fireAnnotator: (s) => {
+    if (s.annotators <= 0) return;
+    s.annotators -= 1;
+    addLog(s, 'info', 'Despides a un anotador. El comunicado habla de "automatización".');
   },
   buyTemplates: (s) => {
     if (!s.templates && spend(s, B.TEMPLATES_COST)) {

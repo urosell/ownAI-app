@@ -34,15 +34,29 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
 
 export function TeamPanel({ s, d }: { s: GameState; d: Dispatch }) {
   const cost = annotatorCost(s);
+  const capacity = annotatorRate(s);
+  const arrival = promptRate(s);
+  const perAnnotator = capacity / Math.max(1, s.annotators);
+  // Anotadores que sobran: aunque se despida a uno, los demás siguen cubriendo todo lo que llega.
+  const idle = s.annotators > 0 ? Math.max(0, Math.floor((capacity - arrival) / perAnnotator)) : 0;
   return (
     <Panel title="Anotadores" aside="la IA es gente" collapsible={s.phase > 0}>
       <Row label="Anotadores" value={s.annotators} />
-      <Row label="Responden" value={`${fmt(annotatorRate(s))} prompts/s`} />
+      <Row label="Pueden responder" value={`${fmt(capacity)} prompts/s`} />
+      <Row label="Llegan" value={`${fmt(arrival)} prompts/s${s.reputation >= 100 ? ' (máximo)' : ''}`} />
       <Row label="Sueldos" value={`−${fmt(s.annotators * B.ANNOTATOR_SALARY)} €/s`} tone="bad" />
+      {idle > 0 && (
+        <Warn label={`${idle} anotador${idle > 1 ? 'es' : ''} de sobra: cobran por esperar`} />
+      )}
       {s.phase >= 1 && <Row label="Datos limpios generados" value={`${fmt(s.data.clean)} tokens`} tone="good" />}
       <Btn onClick={() => d({ type: 'hireAnnotator' })} disabled={s.money < cost} tip={TIPS.annotator}>
         Contratar anotador · {money(cost)}
       </Btn>
+      {s.annotators > 0 && (
+        <Btn onClick={() => d({ type: 'fireAnnotator' })} tip="Sin indemnización. Esto es una startup.">
+          Despedir anotador · −{fmt(B.ANNOTATOR_SALARY)} €/s de sueldos
+        </Btn>
+      )}
       {!s.templates && (
         <Btn onClick={() => d({ type: 'buyTemplates' })} disabled={s.money < B.TEMPLATES_COST} tip={TIPS.templates}>
           Plantillas de respuesta · {money(B.TEMPLATES_COST)}

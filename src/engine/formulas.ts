@@ -442,7 +442,27 @@ export function ideasPerSecond(s: GameState): number {
 }
 
 export function promptRate(s: GameState): number {
-  return B.PROMPT_RATE_BASE * (1 + s.reputation / B.PROMPT_RATE_REP_DIVISOR) * (1 + s.marketing * B.MARKETING_BONUS);
+  return (
+    B.PROMPT_RATE_BASE *
+    (1 + s.reputation / B.PROMPT_RATE_REP_DIVISOR) *
+    (1 + s.marketing * B.MARKETING_BONUS) *
+    promptPriceDemand(s)
+  );
+}
+
+/** Más caro, menos gente: (precio de referencia / precio)^elasticidad. */
+export function promptPriceDemand(s: GameState): number {
+  return (B.PROMPT_REWARD / s.promptPrice) ** B.PROMPT_PRICE_ELASTICITY;
+}
+
+/** € por prompt respondido. */
+export function promptReward(s: GameState): number {
+  return s.promptPrice * promptQuality(s);
+}
+
+/** Reputación que da (o quita) cada prompt respondido según el precio. */
+export function promptRepPerAnswer(s: GameState): number {
+  return B.PROMPT_ANSWER_REP * (2 - s.promptPrice / B.PROMPT_REWARD);
 }
 
 export function marketingCost(s: GameState): number {

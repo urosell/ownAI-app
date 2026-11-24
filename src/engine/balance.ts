@@ -25,7 +25,13 @@ export const B = {
   MARKETING_MAX: 5,
   PROMPT_TTL: 20,
   QUEUE_MAX: 10,
-  PROMPT_REWARD: 1, // € × calidad
+  PROMPT_REWARD: 1, // € × calidad (precio de referencia del prompt)
+  // Precio del prompt (no está en la spec). Llegada × (1/precio)^elasticidad, y cada prompt
+  // respondido da reputación × (2 − precio): a 1 € igual que antes, a 2 € nada, por encima resta.
+  PROMPT_PRICE_MIN: 0.2,
+  PROMPT_PRICE_MAX: 3,
+  PROMPT_PRICE_STEP: 0.1,
+  PROMPT_PRICE_ELASTICITY: 1,
   PROMPT_EXPIRE_REP: -0.5,
   PROMPT_ANSWER_REP: 0.15, // reputación por prompt respondido (no está en la spec)
   QUALITY_BASE: 1.0,

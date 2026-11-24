@@ -110,6 +110,23 @@ describe('fase 0', () => {
     expect(s.money).toBe(10000 - [0, 1, 2, 3, 4].reduce((a, n) => a + B.MARKETING_BASE_COST * B.MARKETING_GROWTH ** n, 0));
   });
 
+  it('el precio del prompt reparte entre más dinero por prompt o más prompts y reputación', () => {
+    const base = { ...initialState(1), reputation: 50 };
+    const cheap = apply(base, { type: 'setPromptPrice', value: 0.5 });
+    const pricey = apply(base, { type: 'setPromptPrice', value: 2.5 });
+    expect(promptRate(cheap)).toBeCloseTo(promptRate(base) * 2, 5);
+    expect(promptRate(pricey)).toBeCloseTo(promptRate(base) / 2.5, 5);
+    // Responder: más caro, más dinero por prompt pero baja la reputación
+    const a = apply({ ...pricey, queue: [{ id: 1, ttl: 10 }] }, { type: 'answerPrompt' });
+    expect(a.money).toBeCloseTo(2.5, 5);
+    expect(a.reputation).toBeLessThan(50);
+    const b = apply({ ...cheap, queue: [{ id: 1, ttl: 10 }] }, { type: 'answerPrompt' });
+    expect(b.money).toBeCloseTo(0.5, 5);
+    expect(b.reputation).toBeGreaterThan(50 + B.PROMPT_ANSWER_REP);
+    // Límites
+    expect(apply(base, { type: 'setPromptPrice', value: 99 }).promptPrice).toBe(B.PROMPT_PRICE_MAX);
+  });
+
   it('se puede despedir anotadores', () => {
     let s = { ...initialState(1), annotators: 2 };
     s = apply(s, { type: 'fireAnnotator' });

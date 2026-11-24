@@ -1,7 +1,7 @@
 // Fase 0 · IA de mentira: cola de prompts, anotadores y auditoría.
 import { B } from '../balance';
 import { earn } from '../economy';
-import { annotatorRate, clamp, promptQuality, promptRate } from '../formulas';
+import { annotatorRate, clamp, promptRate, promptRepPerAnswer, promptReward } from '../formulas';
 import { addLog } from '../log';
 import { chance, pick } from '../rng';
 import type { GameState } from '../state';
@@ -15,10 +15,10 @@ export function fakeActive(s: GameState): boolean {
 export function answerOne(s: GameState, byAnnotator: boolean): number {
   if (s.queue.length === 0) return 0;
   s.queue.shift();
-  const reward = B.PROMPT_REWARD * promptQuality(s);
+  const reward = promptReward(s);
   earn(s, reward);
   s.promptsAnswered += 1;
-  s.reputation = clamp(s.reputation + B.PROMPT_ANSWER_REP, 0, 100);
+  s.reputation = clamp(s.reputation + promptRepPerAnswer(s), 0, 100);
   if (byAnnotator) s.data.clean += B.TOKENS_PER_ANNOTATED_PROMPT;
   return reward;
 }

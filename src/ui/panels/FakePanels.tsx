@@ -1,10 +1,19 @@
 // Fase 0 · IA de mentira
 import { B } from '../../engine/balance';
 import { money, pct, fmt } from '../../engine/format';
-import { annotatorCost, annotatorRate, marketingCost, promptQuality, promptRate } from '../../engine/formulas';
+import {
+  annotatorCost,
+  annotatorRate,
+  marketingCost,
+  promptPriceDemand,
+  promptQuality,
+  promptRate,
+  promptRepPerAnswer,
+  promptReward,
+} from '../../engine/formulas';
 import type { GameState } from '../../engine/state';
 import { MARKETING_CAMPAIGNS, PROMPT_SAMPLES, TIPS } from '../../content/text';
-import { Bar, Btn, Panel, Row, Small, Warn } from '../kit';
+import { Bar, Btn, Panel, Row, Slider, Small, Warn } from '../kit';
 import type { Dispatch } from '../types';
 
 export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
@@ -13,7 +22,7 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
     <Panel title="Bandeja de prompts" aside={`${s.queue.length}/${B.QUEUE_MAX} en cola`} grow={2} basis={420} collapsible={s.phase > 0} id="fake">
       {/* Botones arriba: la cola de abajo cambia de tamaño y no debe moverlos. */}
       <Btn primary onClick={() => d({ type: 'answerPrompt' })} disabled={s.queue.length === 0} tip={TIPS.answer}>
-        Responder prompt · +{money(B.PROMPT_REWARD * promptQuality(s))}
+        Responder prompt · +{money(promptReward(s))}
       </Btn>
       {s.marketing < B.MARKETING_MAX ? (
         <Btn onClick={() => d({ type: 'buyMarketing' })} disabled={s.money < marketingCost(s)} tip={TIPS.marketing}>
@@ -22,7 +31,21 @@ export function InboxPanel({ s, d }: { s: GameState; d: Dispatch }) {
       ) : (
         <Small tone="good">Marketing al máximo: ya no queda canal en el que no salgas.</Small>
       )}
-      <Row label="Llegan" value={`${fmt(promptRate(s))} prompts/s`} />
+      <Slider
+        label="Precio por prompt"
+        value={s.promptPrice}
+        min={B.PROMPT_PRICE_MIN}
+        max={B.PROMPT_PRICE_MAX}
+        step={B.PROMPT_PRICE_STEP}
+        onChange={(v) => d({ type: 'setPromptPrice', value: v })}
+        display={`${fmt(s.promptPrice, { decimals: 1 })} €`}
+      />
+      <Row label="Llegan" value={`${fmt(promptRate(s))} prompts/s (${pct(promptPriceDemand(s) - 1, true)} por precio)`} />
+      <Row
+        label="Reputación por prompt"
+        value={`${promptRepPerAnswer(s) >= 0 ? '+' : ''}${fmt(promptRepPerAnswer(s), { decimals: 2 })}`}
+        tone={promptRepPerAnswer(s) > 0 ? 'good' : promptRepPerAnswer(s) < 0 ? 'bad' : undefined}
+      />
       <Row label="Reputación" value={fmt(s.reputation, { decimals: 0 })} />
       <Row label="Calidad de respuesta" value={fmt(promptQuality(s))} />
       <Bar value={head ? head.ttl / B.PROMPT_TTL : 0} color={head && head.ttl < 6 ? '#ff8a8a' : '#5fd3bc'} height={6} />

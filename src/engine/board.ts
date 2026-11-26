@@ -2,6 +2,7 @@
 import { B } from './balance';
 import { fireEvent } from './events';
 import { activeCapability, activeModel, arr, clamp } from './formulas';
+import { fmt, money } from './format';
 import { addLog } from './log';
 import { pick } from './rng';
 import type { GameState } from './state';
@@ -17,6 +18,15 @@ export function arrBaseline(s: GameState): number {
   const recent = s.board.history.slice(-B.BOARD_ARR_WINDOW).map((h) => h.arr);
   if (recent.length === 0) return s.board.lastArr;
   return recent.reduce((a, x) => a + x, 0) / recent.length;
+}
+
+/** Ronda puente que daría pivotar ahora: decrece con cada pivote. */
+export function pivotAmount(s: GameState): number {
+  return B.BOARD_PIVOT_ROUND * s.valuation * B.BOARD_PIVOT_DECAY ** s.board.pivots;
+}
+
+export function pivotDilution(s: GameState): number {
+  return B.BOARD_PIVOT_DILUTION * (1 - s.dilution / 100);
 }
 
 export function boardTargets(s: GameState): { arrTarget: number; capTarget: number } {
@@ -92,11 +102,17 @@ export function resolveBoard(s: GameState, choice: BoardChoice): void {
       s.expectation += B.BOARD_AGI_EXPECTATION;
       addLog(s, 'board', 'Prometes AGI a la junta. Aplauden. Alguien pregunta "¿para cuándo?". Cambias de tema.');
       break;
-    case 'pivot':
-      s.money += B.BOARD_PIVOT_ROUND * s.valuation;
+    case 'pivot': {
+      const amount = pivotAmount(s);
+      const dil = pivotDilution(s);
+      s.money += amount;
+      s.dilution = Math.min(100, s.dilution + dil);
+      s.valuationMult *= 1 + B.BOARD_PIVOT_VAL;
+      b.pivots += 1;
       s.users = 0;
-      addLog(s, 'board', `Pivotas a agentes. Ronda puente de ${Math.round(B.BOARD_PIVOT_ROUND * 100)} % de la valoración. Los dentistas se quedan sin chatbot.`);
+      addLog(s, 'board', `Pivotas a agentes. Ronda puente de ${money(amount)} a cambio de un ${fmt(dil, { decimals: 1 })} % de la empresa. Los dentistas se quedan sin chatbot.`);
       break;
+    }
     case 'layoff': {
       b.salaryMult *= B.BOARD_LAYOFF_SALARY;
       const cutR = Math.round(s.researchers * B.BOARD_LAYOFF_STAFF);

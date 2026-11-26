@@ -263,7 +263,7 @@ Se comprueban cada 30 s. Cada evento tiene una probabilidad base, condiciones de
 |---|---|---|
 | Maquillar métricas | Se da por cumplido | Expectativa +12 |
 | Prometer AGI | Hype +25 | Expectativa +20 |
-| Pivotar a agentes | Ronda puente de 0,05 × V | Los usuarios de los wrappers se reinician |
+| Pivotar a agentes | Ronda puente de 0,05 × V × 0,5^(pivotes previos) | Vendes un 5 % de lo que te queda, valoración −10 %, los usuarios de los wrappers se reinician. Las acciones se pueden recomprar luego al 150 % de su valor |
 | Recortar plantilla | Sueldos −30 % | Investigadores −25 %, P(fuga) ×2 el siguiente trimestre |
 | Decir la verdad | Valoración −10 % | La próxima ronda da ×1,2 y la junta te tiene más paciencia |
 

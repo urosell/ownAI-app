@@ -65,7 +65,7 @@ export const HELP: Record<string, string> = {
   'Capacidad real': 'Capacidad del modelo que tienes en producción.',
   Expectativa: 'Lo que el mercado cree que vas a sacar. Sube al prometer. Al lanzar, si tu modelo está por debajo, pagas la diferencia en valoración y hype, y la expectativa baja a tu capacidad real.',
   'Deuda de expectativas': 'Expectativa menos capacidad real. Al lanzar, cada punto de deuda resta un 2 % de valoración y 1 de hype. Si la expectativa supera 1,6 veces tu capacidad con una valoración de 1 mil M€ o más, estalla la burbuja.',
-  Dilución: '% de la empresa que ya no es tuya. Cada ronda la sube; con un 90 % ya no hay más rondas.',
+  Dilución: '% de la empresa que ya no es tuya. Cada ronda y cada pivote la suben; con un 90 % ya no hay más rondas. Puedes recomprar acciones, pero más caras de lo que valen.',
 
   // Computación (Fase 2+)
   'GPUs de datacenter': 'Tuyas, 4e14 FLOP/s y 0,4 €/s cada una. Cada GPU sale un 3 % más cara que la anterior; en la Fase 3 los centros de datos propios abaratan la escalada.',

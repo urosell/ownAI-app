@@ -236,6 +236,7 @@ export const B = {
   CONTRACT_EVERY_MAX_Q: 2,
   CONTRACT_DURATION_Q: [2, 4] as const,
   CONTRACT_SLA_PENALTY: 3,
+  CONTRACT_CANCEL_QUARTERS: 1, // rescindir cuesta lo que pagaría el contrato en 1 trimestre × la penalización del SLA
   CONTRACT_OFFER_TTL: 60,
 
   // ── Junta ───────────────────────────────────────────────
@@ -248,6 +249,11 @@ export const B = {
   BOARD_AGI_HYPE: 25,
   BOARD_AGI_EXPECTATION: 20,
   BOARD_PIVOT_ROUND: 0.05,
+  BOARD_PIVOT_DECAY: 0.5, // cada pivote da la mitad que el anterior
+  BOARD_PIVOT_VAL: -0.1, // y diluye: valoración −10 %…
+  BOARD_PIVOT_DILUTION: 5, // …y vendes un 5 % de lo que te queda
+  BUYBACK_STEP: 1, // recompras de 1 % en 1 %
+  BUYBACK_PREMIUM: 1.5, // al 150 % de lo que vale ese 1 % hoy
   BOARD_LAYOFF_SALARY: 0.7,
   BOARD_LAYOFF_STAFF: 0.25,
   BOARD_TRUTH_VAL: -0.1,

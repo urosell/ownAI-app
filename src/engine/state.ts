@@ -109,6 +109,7 @@ export interface BoardState {
   revenueThisQuarter: number;
   costsThisQuarter: number;
   profitStreak: number;
+  pivots: number; // veces que has pivotado (cada ronda puente da menos)
   history: { quarter: number; arr: number; met: boolean }[];
 }
 
@@ -328,6 +329,7 @@ export function initialState(
       truthRoundBonus: false,
       poachMult: 1,
       salaryMult: 1,
+      pivots: 0,
       revenueThisQuarter: 0,
       costsThisQuarter: 0,
       profitStreak: 0,

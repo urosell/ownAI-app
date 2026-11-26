@@ -36,7 +36,9 @@ import {
   launchModel,
   promise,
   raiseRound,
+  buyback,
   rejectContract,
+  cancelContract,
   startSft,
 } from './phases/scaleup';
 import { discardRun, resumeRun, startFinetune, startPretrain, type FinetuneParams, type PretrainParams } from './phases/training';
@@ -79,6 +81,7 @@ export type Action =
   | { type: 'setApiPrice'; value: number }
   | { type: 'promise' }
   | { type: 'raiseRound' }
+  | { type: 'buyback' }
   | { type: 'hireSenior' }
   | { type: 'setEquity'; value: number }
   | { type: 'startSft'; id: string }
@@ -86,6 +89,7 @@ export type Action =
   | { type: 'launchModel'; id: string }
   | { type: 'acceptContract'; id: number }
   | { type: 'rejectContract'; id: number }
+  | { type: 'cancelContract'; id: number }
   | { type: 'boardChoice'; choice: BoardChoice }
   // fase 3
   | { type: 'buildDatacenter'; location: string }
@@ -265,6 +269,7 @@ registerActions({
   },
   promise: (s) => promise(s),
   raiseRound: (s) => raiseRound(s),
+  buyback: (s) => buyback(s),
   hireSenior: (s) => hireSenior(s),
   setEquity: (s, a) => {
     s.equityPool = clamp(a.value, 0, 1);
@@ -277,6 +282,7 @@ registerActions({
   launchModel: (s, a) => launchModel(s, a.id),
   acceptContract: (s, a) => acceptContract(s, a.id),
   rejectContract: (s, a) => rejectContract(s, a.id),
+  cancelContract: (s, a) => cancelContract(s, a.id),
   boardChoice: (s, a) => resolveBoard(s, a.choice),
 
   // ── Fase 3 ──

@@ -190,6 +190,25 @@ export function raiseRound(s: GameState): void {
   );
 }
 
+/** Recomprar acciones: 1 % de la empresa al 150 % de lo que vale hoy. */
+export function buybackCost(s: GameState): number {
+  return (B.BUYBACK_STEP / 100) * s.valuation * B.BUYBACK_PREMIUM;
+}
+
+export function canBuyback(s: GameState): string | null {
+  if (s.phase < 2) return 'Aún no.';
+  if (s.dilution < B.BUYBACK_STEP) return 'No hay acciones que recomprar.';
+  if (s.valuation <= 0) return 'Nadie te vende acciones de una empresa que vale 0 €.';
+  if (s.money < buybackCost(s)) return `Necesitas ${money(buybackCost(s))}.`;
+  return null;
+}
+
+export function buyback(s: GameState): void {
+  if (canBuyback(s) || !spend(s, buybackCost(s))) return;
+  s.dilution = Math.max(0, s.dilution - B.BUYBACK_STEP);
+  addLog(s, 'success', `Recompras un ${B.BUYBACK_STEP} % de la empresa. Los inversores aceptan encantados: les pagas un 50 % más de lo que vale.`);
+}
+
 // ── Talento ──────────────────────────────────────────────
 
 export function hireSenior(s: GameState): void {
@@ -283,6 +302,18 @@ export function acceptContract(s: GameState, id: number): void {
   c.accepted = true;
   c.remaining = randInt(s, B.CONTRACT_DURATION_Q[0], B.CONTRACT_DURATION_Q[1]);
   addLog(s, 'success', `Contrato firmado con ${c.client.toLowerCase()}: +${fmt(c.revenuePerSecond)} €/s durante ${c.remaining} trimestres.`);
+}
+
+/** Indemnización por rescindir un contrato firmado. */
+export function contractCancelFee(c: Contract): number {
+  return c.revenuePerSecond * B.QUARTER_SECONDS * B.CONTRACT_CANCEL_QUARTERS * B.CONTRACT_SLA_PENALTY;
+}
+
+export function cancelContract(s: GameState, id: number): void {
+  const c = s.contracts.find((x) => x.id === id && x.accepted);
+  if (!c || !spend(s, contractCancelFee(c))) return;
+  s.contracts = s.contracts.filter((x) => x !== c);
+  addLog(s, 'fail', `Rescindes el contrato con ${c.client.toLowerCase()}. Indemnización: ${money(contractCancelFee(c))}. Sus abogados sonríen.`);
 }
 
 export function rejectContract(s: GameState, id: number): void {

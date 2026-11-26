@@ -130,7 +130,7 @@ export const BOARD_PRAISE = [
 export const BOARD_OPTIONS: Record<string, { label: string; effect: string; cost: string }> = {
   fake: { label: 'Maquillar métricas', effect: 'Se da por cumplido', cost: 'Expectativa +12' },
   agi: { label: 'Prometer AGI', effect: 'Hype +25', cost: 'Expectativa +20' },
-  pivot: { label: 'Pivotar a agentes', effect: 'Ronda puente de 0,05 × V', cost: 'Los usuarios de los wrappers se reinician' },
+  pivot: { label: 'Pivotar a agentes', effect: 'Ronda puente (cada vez la mitad)', cost: 'Los usuarios de los wrappers se reinician' },
   layoff: { label: 'Recortar plantilla', effect: 'Sueldos −30 %', cost: 'Investigadores −25 %, P(fuga) ×2 el siguiente trimestre' },
   truth: { label: 'Decir la verdad', effect: 'Valoración −10 %', cost: 'La próxima ronda da ×1,2 y la junta te tiene más paciencia' },
 };
@@ -144,6 +144,8 @@ export const TIPS: Record<string, string> = {
   firstGpu: 'Una GPU de segunda mano con olor a minería de cripto.',
   consumerGpu: 'Más GPUs de consumo. Cada una más cara: el vendedor de Wallapop ya te conoce.',
   datacenterGpu: 'GPUs de datacenter: 4 veces más FLOP/s. Dato real: una H100 rinde unos 1e15 FLOP/s en bf16 sobre el papel.',
+  buyback: 'Recompras acciones a los inversores al 150 % de lo que valen hoy. Baja la dilución y te deja levantar más rondas.',
+  cancelContract: 'Rompes el contrato ya: pagas de golpe lo que te pagaría en un trimestre, ×3. Te sale a cuenta si vas a seguir incumpliendo el SLA.',
   rent: 'GPUs en la nube: 4 veces más potentes y pagas por segundo. Dato real: la mayoría de laboratorios alquila.',
   licensed: 'Datos con licencia. Caros, limpios y, sobre todo, legales.',
   scraping: 'Descarga todo internet. Dato real: casi todos los LLM se han entrenado con datos scrapeados.',

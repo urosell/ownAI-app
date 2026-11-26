@@ -157,3 +157,62 @@ describe('objetivo de ARR de la junta', () => {
     expect(boardTargets(s).arrTarget).toBeCloseTo(1.5 * 4e7);
   });
 });
+
+describe('rescindir contrato', () => {
+  it('cobra la indemnización y quita el contrato', async () => {
+    const { contractCancelFee } = await import('./phases/scaleup');
+    const s = phase2();
+    const c = { id: 99, client: 'Un banco', text: '', minCapability: 81, tokensPerSecond: 1e6, revenuePerSecond: 1000, remaining: 3, accepted: true, breached: 0 };
+    s.contracts = [c];
+    s.money = 1e7;
+    const fee = contractCancelFee(c);
+    expect(fee).toBe(1000 * B.QUARTER_SECONDS * B.CONTRACT_SLA_PENALTY);
+    applyInPlace(s, { type: 'cancelContract', id: 99 });
+    expect(s.contracts).toHaveLength(0);
+    expect(s.money).toBeCloseTo(1e7 - fee);
+  });
+
+  it('no se puede rescindir sin dinero', async () => {
+    const s = phase2();
+    s.contracts = [{ id: 1, client: 'X', text: '', minCapability: 0, tokensPerSecond: 1, revenuePerSecond: 1000, remaining: 3, accepted: true, breached: 0 }];
+    s.money = 10;
+    applyInPlace(s, { type: 'cancelContract', id: 1 });
+    expect(s.contracts).toHaveLength(1);
+  });
+});
+
+describe('pivotar a agentes y recomprar', () => {
+  function boardMiss(s: GameState) {
+    s.modal = { kind: 'board', quarter: 1, arrTarget: 1, capTarget: 1, arr: 0, cap: 0, met: false, text: '' };
+  }
+
+  it('cada pivote da la mitad, diluye y baja la valoración', async () => {
+    const { resolveBoard } = await import('./board');
+    const s = phase2();
+    s.valuation = 1e9;
+    s.money = 0;
+    s.valuationMult = 1;
+    boardMiss(s);
+    resolveBoard(s, 'pivot');
+    expect(s.money).toBeCloseTo(5e7);
+    expect(s.dilution).toBeCloseTo(B.BOARD_PIVOT_DILUTION);
+    expect(s.valuationMult).toBeCloseTo(0.9);
+    s.money = 0;
+    boardMiss(s);
+    resolveBoard(s, 'pivot');
+    expect(s.money).toBeCloseTo(2.5e7);
+  });
+
+  it('recomprar baja la dilución a un precio con prima', async () => {
+    const { buybackCost } = await import('./phases/scaleup');
+    const s = phase2();
+    s.valuation = 1e9;
+    s.dilution = 10;
+    s.money = 1e8;
+    const cost = buybackCost(s);
+    expect(cost).toBeCloseTo(0.01 * 1e9 * 1.5);
+    applyInPlace(s, { type: 'buyback' });
+    expect(s.dilution).toBeCloseTo(9);
+    expect(s.money).toBeCloseTo(1e8 - cost);
+  });
+});

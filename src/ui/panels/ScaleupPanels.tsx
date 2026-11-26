@@ -1,7 +1,7 @@
 // Fase 2 · Scale-up
 import { useState } from 'react';
 import { B } from '../../engine/balance';
-import { boardTargets, myBoardCapability } from '../../engine/board';
+import { boardTargets, myBoardCapability, pivotAmount, pivotDilution } from '../../engine/board';
 import { clock, fmt, money, pct, sci } from '../../engine/format';
 import {
   activeCapability,
@@ -26,7 +26,7 @@ import {
   trainingFlopsPerSecond,
 } from '../../engine/formulas';
 import { planPretrain } from '../../engine/phases/training';
-import { canRaise, launchBlockedReason, nextPromiseText, poachProbability, sftCost, sftDuration } from '../../engine/phases/scaleup';
+import { buybackCost, canBuyback, canRaise, contractCancelFee, launchBlockedReason, nextPromiseText, poachProbability, sftCost, sftDuration } from '../../engine/phases/scaleup';
 import type { GameState } from '../../engine/state';
 import { BOARD_OPTIONS, TIPS } from '../../content/text';
 import { ModalFrame } from '../Modal';
@@ -182,6 +182,11 @@ export function HypePanel({ s, d }: { s: GameState; d: Dispatch }) {
       <Btn onClick={() => d({ type: 'raiseRound' })} disabled={!!roundBlock} tip={roundBlock ?? TIPS.round}>
         Levantar ronda · {money(roundAmount(s))} por {fmt(B.ROUND_DILUTION * (1 - s.dilution / 100), { decimals: 0 })} %
       </Btn>
+      {s.dilution >= B.BUYBACK_STEP && (
+        <Btn onClick={() => d({ type: 'buyback' })} disabled={!!canBuyback(s)} tip={canBuyback(s) ?? TIPS.buyback}>
+          Recomprar {B.BUYBACK_STEP} % · {money(buybackCost(s))}
+        </Btn>
+      )}
     </Panel>
   );
 }
@@ -344,9 +349,14 @@ export function ContractsPanel({ s, d }: { s: GameState; d: Dispatch }) {
           <Row label="Pide" tip={HELP["Pide"]} value={`cap. ≥ ${c.minCapability} · ${fmt(c.tokensPerSecond)} tok/s`} tone={cap < c.minCapability ? 'bad' : undefined} />
           <Row label="Paga" tip={HELP["Paga"]} value={`+${fmt(c.revenuePerSecond)} €/s`} tone="good" />
           {c.accepted ? (
-            <Small tone={c.breached > 0 ? 'bad' : 'muted'}>
-              Activo · quedan {c.remaining} trimestres{c.breached > 0 ? ` · penalizaciones ${money(c.breached)}` : ''}
-            </Small>
+            <>
+              <Small tone={c.breached > 0 ? 'bad' : 'muted'}>
+                Activo · quedan {c.remaining} trimestres{c.breached > 0 ? ` · penalizaciones ${money(c.breached)}` : ''}
+              </Small>
+              <Btn small onClick={() => d({ type: 'cancelContract', id: c.id })} disabled={s.money < contractCancelFee(c)} tip={TIPS.cancelContract}>
+                Rescindir · {money(contractCancelFee(c))}
+              </Btn>
+            </>
           ) : (
             <div className="flex gap-2">
               <Btn small primary onClick={() => d({ type: 'acceptContract', id: c.id })}>
@@ -395,7 +405,9 @@ export function BoardModal({ s, d }: { s: GameState; d: Dispatch }) {
               <span className="flex flex-col items-start text-left py-1.5">
                 <span className="font-medium">{BOARD_OPTIONS[k].label}</span>
                 <span className="text-xs text-muted">
-                  {BOARD_OPTIONS[k].effect} · {BOARD_OPTIONS[k].cost}
+                  {k === 'pivot'
+                    ? `Ronda puente de ${money(pivotAmount(s))} · Vendes un ${fmt(pivotDilution(s), { decimals: 1 })} % y la valoración baja un 10 %. ${BOARD_OPTIONS[k].cost}`
+                    : `${BOARD_OPTIONS[k].effect} · ${BOARD_OPTIONS[k].cost}`}
                 </span>
               </span>
             </Btn>

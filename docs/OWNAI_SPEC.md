@@ -255,7 +255,7 @@ Se comprueban cada 30 s. Cada evento tiene una probabilidad base, condiciones de
 
 ## 7. Junta trimestral (Fase 2+)
 
-- Cada 180 s se abre un modal (el juego se pausa) con los KPI del trimestre: ARR objetivo (`max(1,5 × ARR del trimestre anterior, 1e6)`) y capacidad objetivo (la del líder de los rivales − 5).
+- Cada 180 s se abre un modal (el juego se pausa) con los KPI del trimestre: ARR objetivo (`max(1,5 × media del ARR de los últimos 3 trimestres, 1e6)`) y capacidad objetivo (la del líder de los rivales − 5).
 - Si se cumplen: valoración +10 % y un mensaje de felicitación con una dosis de condescendencia.
 - Si no, el jugador elige **una** opción:
 

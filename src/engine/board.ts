@@ -12,9 +12,16 @@ export type BoardChoice = 'ok' | 'fake' | 'agi' | 'pivot' | 'layoff' | 'truth';
 /** Efectos trimestrales de otros sistemas (rivales, fugas, contratos, multas…). */
 export const QUARTER_HOOKS: ((s: GameState) => void)[] = [];
 
+/** ARR de referencia: media de los últimos trimestres, para que un lanzamiento grande no dispare el listón. */
+export function arrBaseline(s: GameState): number {
+  const recent = s.board.history.slice(-B.BOARD_ARR_WINDOW).map((h) => h.arr);
+  if (recent.length === 0) return s.board.lastArr;
+  return recent.reduce((a, x) => a + x, 0) / recent.length;
+}
+
 export function boardTargets(s: GameState): { arrTarget: number; capTarget: number } {
   const growth = s.board.patience ? B.PATIENCE_ARR_GROWTH : B.BOARD_ARR_GROWTH;
-  const arrTarget = Math.max(growth * s.board.lastArr, B.BOARD_ARR_MIN);
+  const arrTarget = Math.max(growth * arrBaseline(s), B.BOARD_ARR_MIN);
   const leader = Math.max(0, ...s.rivals.map((r) => r.releasedCapability));
   return { arrTarget, capTarget: Math.max(0, leader - B.BOARD_CAP_MARGIN) };
 }

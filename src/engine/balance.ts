@@ -241,6 +241,7 @@ export const B = {
   // ── Junta ───────────────────────────────────────────────
   BOARD_ARR_GROWTH: 1.5,
   BOARD_ARR_MIN: 1e6,
+  BOARD_ARR_WINDOW: 3, // el objetivo de ARR crece sobre la media de los últimos 3 trimestres, no sobre el último
   BOARD_CAP_MARGIN: 5,
   BOARD_SUCCESS_VAL: 0.1,
   BOARD_FAKE_EXPECTATION: 12,

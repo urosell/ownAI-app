@@ -143,3 +143,17 @@ describe('fase 2', () => {
     expect(capabilityFromLoss(chinchillaLoss(7e10, 1.4e12))).toBeGreaterThan(65);
   });
 });
+
+describe('objetivo de ARR de la junta', () => {
+  it('crece sobre la media de los últimos trimestres, no sobre el pico', async () => {
+    const { boardTargets } = await import('./board');
+    const s = phase2();
+    s.board.history = [
+      { quarter: 1, arr: 1e7, met: true },
+      { quarter: 2, arr: 1e7, met: true },
+      { quarter: 3, arr: 1e8, met: true },
+    ];
+    s.board.lastArr = 1e8;
+    expect(boardTargets(s).arrTarget).toBeCloseTo(1.5 * 4e7);
+  });
+});

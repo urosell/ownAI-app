@@ -79,7 +79,7 @@ export const HELP: Record<string, string> = {
   'Modelo servido': 'El modelo que atiende la API. Cambia al lanzar uno nuevo.',
 
   // Junta
-  'ARR objetivo': 'Lo que la junta exige al cerrar el trimestre: 1,5 veces el ARR del trimestre anterior (mínimo 1 M€).',
+  'ARR objetivo': 'Lo que la junta exige al cerrar el trimestre: 1,5 veces la media del ARR de los últimos 3 trimestres (mínimo 1 M€). Un lanzamiento grande no dispara el listón de golpe.',
   'Capacidad objetivo': 'Capacidad del mejor rival menos 5. Cuenta la del modelo que tienes lanzado.',
   Capacidad: 'Capacidad de tu modelo lanzado.',
 
